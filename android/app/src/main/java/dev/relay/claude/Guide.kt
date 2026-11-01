@@ -66,10 +66,10 @@ object Guide {
 
         // шапка
         col.addView(LogoView(a), LinearLayout.LayoutParams(dp(76), dp(76)).apply { gravity = Gravity.CENTER_HORIZONTAL })
-        col.addView(text("Как пользоваться", 32f, Palette.TEXT, Palette.SERIF).apply {
+        col.addView(text(tr("Как пользоваться", "How to use"), 32f, Palette.TEXT, Palette.SERIF).apply {
             gravity = Gravity.CENTER; setPadding(0, dp(10), 0, 0)
         })
-        col.addView(text("Три шага — и Claude работает через твой сервер.\nЗаймёт минуту.", 15f, Palette.DIM).apply {
+        col.addView(text(tr("Три шага — и Claude работает через твой сервер.\nЗаймёт минуту.", "Three steps and Claude runs through your server.\nTakes a minute."), 15f, Palette.DIM).apply {
             gravity = Gravity.CENTER; setPadding(dp(8), dp(8), dp(8), dp(4))
         })
 
@@ -79,14 +79,14 @@ object Guide {
         }
 
         // ---- три шага ----
-        col.addView(section("ТРИ ШАГА"))
+        col.addView(section(tr("ТРИ ШАГА", "THREE STEPS")))
         val steps = listOf(
-            Triple("1", "Подключись",
-                "Вставь ссылку от своей VDS или адрес SOCKS5. Приложение само проверит связь — нужно **5 галочек**."),
-            Triple("2", "Открой Claude",
-                "Жми **«Открыть Claude»**. Включится защита: наружу пойдёт **только IP сервера**, твой настоящий не засветится."),
-            Triple("3", "Войди в аккаунт",
-                "Через Google или по почте — всё откроется **внутри приложения**. Для почты один раз разреши ссылки claude.ai — приложение подскажет."),
+            Triple("1", tr("Подключись", "Connect"),
+                tr("Вставь ссылку от своей VDS или адрес SOCKS5. Приложение само проверит связь — нужно **5 галочек**.", "Paste the link from your VDS or a SOCKS5 address. The app checks the connection itself — you need **5 checkmarks**.")),
+            Triple("2", tr("Открой Claude", "Open Claude"),
+                tr("Жми **«Открыть Claude»**. Включится защита: наружу пойдёт **только IP сервера**, твой настоящий не засветится.", "Tap **\"Open Claude\"**. Protection turns on: **only the server's IP** goes out, your real one stays hidden.")),
+            Triple("3", tr("Войди в аккаунт", "Sign in"),
+                tr("Через Google или по почте — всё откроется **внутри приложения**. Для почты один раз разреши ссылки claude.ai — приложение подскажет.", "With Google or by email — everything opens **inside the app**. For email, allow claude.ai links once — the app will show you how.")),
         )
         for ((n, title, body) in steps) {
             val card = LinearLayout(a).apply {
@@ -109,17 +109,17 @@ object Guide {
         }
 
         // ---- правила ----
-        col.addView(section("ЧТОБЫ НЕ ЗАБАНИЛИ"))
+        col.addView(section(tr("ЧТОБЫ НЕ ЗАБАНИЛИ", "DON'T GET BANNED")))
         val rules = LinearLayout(a).apply {
             orientation = LinearLayout.VERTICAL
             background = round(18, Palette.CARD, Palette.LINE)
             setPadding(dp(16), dp(6), dp(16), dp(6))
         }
         val list = listOf(
-            true to "**Всегда один сервер.** Один аккаунт — один IP, без прыжков между VPN.",
-            true to "**Сервер в стране, где есть Claude** — ЕС, США, Британия.",
-            false to "**Не заходи в этот аккаунт без приложения** — ни с телефона, ни с компа напрямую.",
-            false to "**Не раздавай свою ссылку** и не бери бесплатные прокси: чужие действия лягут на твой аккаунт.",
+            true to tr("**Всегда один сервер.** Один аккаунт — один IP, без прыжков между VPN.", "**Always the same server.** One account, one IP, no hopping between VPNs."),
+            true to tr("**Сервер в стране, где есть Claude** — ЕС, США, Британия.", "**A server in a country where Claude works** — EU, US, UK."),
+            false to tr("**Не заходи в этот аккаунт без приложения** — ни с телефона, ни с компа напрямую.", "**Don't use this account outside the app** — not on the phone, not on a computer directly."),
+            false to tr("**Не раздавай свою ссылку** и не бери бесплатные прокси: чужие действия лягут на твой аккаунт.", "**Don't share your link** and don't use free proxies: what others do gets tied to your account."),
         )
         for ((i, pair) in list.withIndex()) {
             val (ok, body) = pair
@@ -142,7 +142,7 @@ object Guide {
         animated += rules
 
         // ---- риски ----
-        col.addView(section("ЧЕСТНО"))
+        col.addView(section(tr("ЧЕСТНО", "HONESTLY")))
         val risk = LinearLayout(a).apply {
             orientation = LinearLayout.HORIZONTAL
             background = round(18, Palette.alpha(Palette.ERR, 0x14), Palette.alpha(Palette.ERR, 0x55))
@@ -153,8 +153,10 @@ object Guide {
             background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Palette.alpha(Palette.ERR, 0x2A)) }
         }, LinearLayout.LayoutParams(dp(26), dp(26)).apply { rightMargin = dp(14) })
         risk.addView(text(rich(
-            "Claude официально не работает в России. Заходить через прокси — **против правил Anthropic**, аккаунт могут заблокировать. " +
-                "Приложение прячет IP, но решение за тобой. Проект не связан с Anthropic."), 14f, Palette.DIM),
+            tr("Claude официально не работает в России. Заходить через прокси — **против правил Anthropic**, аккаунт могут заблокировать. " +
+                "Приложение прячет IP, но решение за тобой. Проект не связан с Anthropic.",
+                "Claude isn't officially available in your country. Using it through a proxy is **against Anthropic's rules**, and the account can be blocked. " +
+                "The app hides your IP, but the decision is yours. This project isn't affiliated with Anthropic.")), 14f, Palette.DIM),
             LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
         col.addView(risk, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
         animated += risk
@@ -165,7 +167,7 @@ object Guide {
             setPadding(dp(10), dp(6), dp(10), dp(6))
             setOnClickListener { runCatching { a.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } }
         }
-        author.addView(text("автор", 13f, Palette.FAINT))
+        author.addView(text(tr("автор", "author"), 13f, Palette.FAINT))
         author.addView(link("Telegram @synaps_ss", MainActivity.AUTHOR_TG))
         author.addView(text("·", 13f, Palette.FAINT))
         author.addView(link("GitHub", MainActivity.AUTHOR_GITHUB))
@@ -181,7 +183,7 @@ object Guide {
                 intArrayOf(Palette.BG, Palette.BG, Color.TRANSPARENT))
         }
         val go = Button(a).apply {
-            text = if (firstRun) "Понятно, поехали" else "Понятно"
+            text = if (firstRun) tr("Понятно, поехали", "Got it, let's go") else tr("Понятно", "Got it")
             isAllCaps = false
             textSize = 16f
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
@@ -196,6 +198,17 @@ object Guide {
             setBackgroundColor(Palette.BG)
             addView(scroll, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
             addView(bottom, FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT, Gravity.BOTTOM))
+            // переключатель языка в правом верхнем углу
+            addView(text(Lang.switchLabel, 13f, Palette.DIM).apply {
+                setPadding(dp(14), dp(10), dp(14), dp(10))
+                background = round(99, Palette.CARD, Palette.LINE)
+                setOnClickListener {
+                    dialog.dismiss()
+                    if (a is MainActivity) a.switchLanguage() else { Lang.set(a, !Lang.en); a.recreate() }
+                }
+            }, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT, Gravity.TOP or Gravity.END).apply {
+                topMargin = dp(18); rightMargin = dp(16)
+            })
         }
         dialog.setContentView(root)
         dialog.setCancelable(!firstRun)

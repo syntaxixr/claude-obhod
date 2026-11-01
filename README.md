@@ -31,9 +31,9 @@
 
 An Android app plus a small server that let you use Claude through your own server abroad (a VDS) or through a SOCKS5 proxy.
 
-*Obhod* (Обход) is Russian for "workaround". The app's interface is in Russian; this page explains every step in English.
+*Obhod* (Обход) is Russian for "workaround". The app speaks **English and Russian**: it picks your phone's language and you can switch any time with the 🌐 button.
 
-Open the app and it checks your connection on five points. When everything is green you get the **"Open Claude"** button (*«Открыть Claude»*). Claude opens right inside the app, and the only connection that leaves the phone goes to your server: WebRTC, DNS and any direct requests are blocked, so Claude never sees the phone's real IP.
+Open the app and it checks your connection on five points. When everything is green you get the **"Open Claude"** button. Claude opens right inside the app, and the only connection that leaves the phone goes to your server: WebRTC, DNS and any direct requests are blocked, so Claude never sees the phone's real IP.
 
 > [!CAUTION]
 > **Don't use the official Claude app. That's what gets accounts banned.**
@@ -103,7 +103,7 @@ You need a VDS in a country where Claude works (EU, US, UK, etc.). The phone-to-
 
 1. Install the server on the VDS (5 minutes, see below).
 2. Copy the link it prints: `socks5://relay:TOKEN@address:port`.
-3. In the app pick "Your own VDS" (*«Своя VDS»*) and paste the link.
+3. In the app pick "Your own VDS" and paste the link.
 
 ### B. A regular SOCKS5 proxy
 
@@ -116,7 +116,7 @@ host:port:login:password
 host:port
 ```
 
-In the app pick "Regular SOCKS5 proxy" (*«Обычный SOCKS5-прокси»*) and paste the address.
+In the app pick "Regular SOCKS5 proxy" and paste the address.
 
 > Plain SOCKS5 isn't encrypted: your ISP can see which sites you connect to and may block the proxy. Free and shared proxies won't do, see "Don't get banned".
 
@@ -180,19 +180,19 @@ But remember the "one server, one person" rule below: to Claude, everyone coming
 Download the APK from [Releases](https://github.com/syntaxixr/claude-obhod/releases/latest), open it on the phone and tap "Install" (allow installing from unknown sources). Android 8 or newer.
 
 **First run:**
-1. The "How to use" guide (*«Как пользоваться»*): scroll through and tap *«Понятно, поехали»* ("Got it, let's go").
-2. Pick "Your own VDS" or "Regular SOCKS5" and paste the link (there's a "Paste from clipboard" button, *«Вставить из буфера»*).
-3. If the server was installed by IP, turn on "Allow self-signed certificate" (*«Разрешить самоподписанный сертификат»*).
-4. Wait for five checkmarks, then tap **"Open Claude"** (*«Открыть Claude»*).
+1. The "How to use" guide: scroll through and tap **"Got it, let's go"**. The 🌐 button in the corner switches the language.
+2. Pick "Your own VDS" or "Regular SOCKS5" and paste the link (there's a "Paste from clipboard" button).
+3. If the server was installed by IP, turn on "Allow self-signed certificate".
+4. Wait for five checkmarks, then tap **"Open Claude"**.
 5. Android will ask once about notifications and VPN. Allow both. That's the protection described below.
 
 | Check | What it checks |
 |---|---|
-| Internet on the phone (*Интернет на телефоне*) | whether there's a network |
-| Server (*Сервер*) | the server answers and accepts the token / login |
-| Tunnel (*Туннель*) | the connection through the server works |
-| Internet exit (*Выход в интернет*) | the country the internet sees (not RU/BY/CN/…) |
-| Claude available (*Claude доступен*) | claude.ai and the API open, no region block |
+| Internet on the phone | whether there's a network |
+| Server | the server answers and accepts the token / login |
+| Tunnel | the connection through the server works |
+| Internet exit | the country the internet sees (not RU/BY/CN/…) |
+| Claude available | claude.ai and the API open, no region block |
 
 ### Signing in
 
@@ -213,7 +213,7 @@ Tested on an emulator while recording all of the phone's traffic:
 | Connections to Claude and Google sign-in bypassing the server | — | none |
 | Signing in to claude.ai | works | works, Cloudflare lets you through |
 
-Inside the page there's one more layer: WebRTC is stripped before the page loads, the WebView has no "direct" fallback, every link opens inside (through the server), downloads go through the server, geolocation is denied, and the language sent to sites is `ru-LV`.
+Inside the page there's one more layer: WebRTC is stripped before the page loads, the WebView has no "direct" fallback, every link opens inside (through the server), downloads go through the server, geolocation is denied, and the language sent to sites is `en-US` (`ru-LV` in Russian mode).
 
 **What the app doesn't hide.** Sites see the phone's time zone as it is: spoofing it was tried, but Cloudflare catches it and won't let you into Claude. The least noticeable option is Claude inside Claude Obhod.
 
@@ -226,7 +226,7 @@ Inside the page there's one more layer: WebRTC is stripped before the page loads
 
 ## Don't get banned
 
-The app shows these rules on first run (and under the "Guide" button, *«Инструкция»*).
+The app shows these rules on first run (and under the "Guide" button).
 
 - ✓ **Always the same server.** One account, one IP. No hopping between VPNs and proxies.
 - ✓ **A server in a country where Claude works:** EU, US, UK. If the "Internet exit" check is red, the server won't do.

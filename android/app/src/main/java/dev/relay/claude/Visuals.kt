@@ -283,6 +283,8 @@ class MarkedText(ctx: Context) : TextView(ctx) {
         private val PHRASES = listOf(
             "российский IP не засветится", "российский IP", "только через VDS", "только VDS",
             "мимо VDS", "напрямую", "не засветится",
+            "only through VDS", "only the VDS", "Your real IP won't be exposed", "won't be exposed",
+            "bypassing the VDS", "directly",
         )
 
         fun mark(src: CharSequence?): CharSequence {

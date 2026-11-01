@@ -127,13 +127,13 @@ class RelayVpnService : VpnService() {
         // запуск системой («Постоянный VPN» / после перезагрузки) — поднимаем прокси сами
         var p = wantPort
         if (p == 0 && app.ensureProxy(prefs)) p = app.proxyPort
-        if (p == 0) throw IllegalStateException("локальный прокси не запущен")
-        if (prefs.host.isBlank()) throw IllegalStateException("не настроен адрес VDS")
+        if (p == 0) throw IllegalStateException(tr("локальный прокси не запущен", "local proxy isn't running"))
+        if (prefs.host.isBlank()) throw IllegalStateException(tr("не настроен адрес VDS", "VDS address not set"))
 
         // куда пускаем напрямую: только VDS
         val vdsIsLiteral = prefs.host.all { it.isDigit() || it == '.' }
         val vdsV4 = InetAddress.getAllByName(prefs.host).filterIsInstance<Inet4Address>()
-        if (vdsV4.isEmpty()) throw IllegalStateException("у VDS нет IPv4-адреса")
+        if (vdsV4.isEmpty()) throw IllegalStateException(tr("у VDS нет IPv4-адреса", "the VDS has no IPv4 address"))
         val excluded = vdsV4.map { ipToLong(it) }.toMutableList()
 
         // DNS: если VDS задан IP — DNS не нужен вовсе, глушим. Если доменом —
@@ -147,7 +147,7 @@ class RelayVpnService : VpnService() {
         }
 
         val b = Builder()
-            .setSession("Claude Обход — защита")
+            .setSession(tr("Claude Обход — защита", "Claude Obhod — protection"))
             .setMtu(1500)
             .addAddress("10.111.0.2", 32)
             .addAddress("fd11:1:1::2", 128)
@@ -165,7 +165,7 @@ class RelayVpnService : VpnService() {
             b.setMetered(false)
         }
 
-        val fd = b.establish() ?: throw IllegalStateException("нет разрешения на VPN")
+        val fd = b.establish() ?: throw IllegalStateException(tr("нет разрешения на VPN", "no VPN permission"))
         try { tun?.close() } catch (_: Exception) {}
         tun = fd
         port = p
@@ -195,8 +195,8 @@ class RelayVpnService : VpnService() {
     private fun goForeground() {
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         nm.createNotificationChannel(
-            NotificationChannel(CHANNEL, "Защита Claude", NotificationManager.IMPORTANCE_LOW).apply {
-                description = "Показывается, пока Claude идёт только через VDS"
+            NotificationChannel(CHANNEL, tr("Защита Claude", "Claude protection"), NotificationManager.IMPORTANCE_LOW).apply {
+                description = tr("Показывается, пока Claude идёт только через VDS", "Shown while Claude goes only through VDS")
                 setShowBadge(false)
             }
         )
@@ -205,12 +205,12 @@ class RelayVpnService : VpnService() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         val n: Notification = Notification.Builder(this, CHANNEL)
-            .setContentTitle("Claude идёт только через VDS")
-            .setContentText("Защита включена: Claude Обход и приложение Claude не выходят напрямую")
+            .setContentTitle(tr("Claude идёт только через VDS", "Claude goes only through VDS"))
+            .setContentText(tr("Защита включена: Claude Обход и приложение Claude не выходят напрямую", "Protection on: Claude Obhod and the Claude app don't go out directly"))
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true)
             .setContentIntent(mainIntent())
-            .addAction(Notification.Action.Builder(null, "Выключить", stop).build())
+            .addAction(Notification.Action.Builder(null, tr("Выключить", "Turn off"), stop).build())
             .build()
         if (Build.VERSION.SDK_INT >= 34) {
             startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
@@ -222,12 +222,12 @@ class RelayVpnService : VpnService() {
     private fun warnTunnelGone() {
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         nm.createNotificationChannel(
-            NotificationChannel("tunnel-alert", "Защита Claude отключена", NotificationManager.IMPORTANCE_HIGH)
+            NotificationChannel("tunnel-alert", tr("Защита Claude отключена", "Claude protection is off"), NotificationManager.IMPORTANCE_HIGH)
         )
         val n = Notification.Builder(this, "tunnel-alert")
-            .setContentTitle("Защита Claude отключена")
-            .setContentText("Приложение Claude сейчас может пойти напрямую. Включите защиту в Claude Обход.")
-            .setStyle(Notification.BigTextStyle().bigText("Приложение Claude сейчас может пойти напрямую (без VDS). Не открывайте его — зайдите в Claude Обход и нажмите «Открыть Claude», защита включится снова."))
+            .setContentTitle(tr("Защита Claude отключена", "Claude protection is off"))
+            .setContentText(tr("Приложение Claude сейчас может пойти напрямую. Включите защиту в Claude Обход.", "The Claude app may now go directly. Turn protection back on in Claude Obhod."))
+            .setStyle(Notification.BigTextStyle().bigText(tr("Приложение Claude сейчас может пойти напрямую (без VDS). Не открывайте его — зайдите в Claude Обход и нажмите «Открыть Claude», защита включится снова.", "The Claude app may now go directly (without VDS). Don't open it — go to Claude Obhod and tap \"Open Claude\", protection will turn on again.")))
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentIntent(mainIntent())
             .setAutoCancel(true)

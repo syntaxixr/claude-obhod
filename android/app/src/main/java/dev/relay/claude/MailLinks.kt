@@ -48,18 +48,25 @@ object MailLinks {
     fun advise(a: Activity) {
         if (a.isFinishing) return
         AlertDialog.Builder(a)
-            .setTitle("Вход по почте")
+            .setTitle(tr("Вход по почте", "Sign in by email"))
             .setMessage(
-                "Claude пришлёт письмо со ссылкой для входа. Сейчас телефон откроет её в браузере — " +
+                tr("Claude пришлёт письмо со ссылкой для входа. Сейчас телефон откроет её в браузере — " +
                     "мимо VDS, с российским IP. Чтобы она открывалась здесь:\n\n" +
                     "1. Нажмите «Настроить».\n" +
                     "2. Включите «Открывать поддерживаемые ссылки».\n" +
                     "3. «Добавить ссылку» → отметьте claude.ai → «Добавить».\n\n" +
                     "Без настройки тоже можно: в письме долго нажмите на кнопку входа → " +
                     "«Копировать ссылку» и вернитесь сюда — ссылка откроется сама.",
+                    "Claude will email you a sign-in link. Right now the phone would open it in the browser — " +
+                    "bypassing the VDS, with your real IP. To open it here instead:\n\n" +
+                    "1. Tap \"Set up\".\n" +
+                    "2. Turn on \"Open supported links\".\n" +
+                    "3. \"Add link\" → tick claude.ai → \"Add\".\n\n" +
+                    "Works without the setup too: in the email, long-press the sign-in button → " +
+                    "\"Copy link\" and come back here — the link opens by itself."),
             )
-            .setPositiveButton("Настроить") { _, _ -> openSettings(a) }
-            .setNegativeButton("Потом", null)
+            .setPositiveButton(tr("Настроить", "Set up")) { _, _ -> openSettings(a) }
+            .setNegativeButton(tr("Потом", "Later"), null)
             .show()
     }
 }

@@ -216,8 +216,8 @@ class WebActivity : AppCompatActivity() {
                 if (request?.isForMainFrame != true) return
                 val why = when (error?.errorCode) {
                     ERROR_PROXY_AUTHENTICATION, ERROR_CONNECT, ERROR_TIMEOUT, ERROR_HOST_LOOKUP ->
-                        "Нет связи с VDS. Проверьте интернет или что сервер на VDS запущен."
-                    else -> "Не удалось открыть Claude: ${error?.description ?: "ошибка сети"}"
+                        tr("Нет связи с VDS. Проверьте интернет или что сервер на VDS запущен.", "Can't reach the VDS. Check your internet or that the server on the VDS is running.")
+                    else -> tr("Не удалось открыть Claude: ", "Couldn't open Claude: ") + (error?.description ?: tr("ошибка сети", "network error"))
                 }
                 showOverlayError(why)
             }
@@ -306,12 +306,12 @@ class WebActivity : AppCompatActivity() {
             setBackgroundColor(Color.parseColor("#1F1E1D"))
         }
         bar.addView(TextView(this).apply {
-            text = "Вход · через VDS"
+            text = tr("Вход · через VDS", "Sign-in · through VDS")
             setTextColor(Color.parseColor("#A6A39A"))
             textSize = 13f
         }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
         bar.addView(Button(this).apply {
-            text = "Закрыть"
+            text = tr("Закрыть", "Close")
             isAllCaps = false
             textSize = 13f
             setTextColor(Color.parseColor("#D97757"))
@@ -340,7 +340,7 @@ class WebActivity : AppCompatActivity() {
         return try {
             val i = params?.createIntent() ?: Intent(Intent.ACTION_GET_CONTENT).setType("*/*")
             if (params?.mode == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE) i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-            pickFiles.launch(Intent.createChooser(i, "Прикрепить"))
+            pickFiles.launch(Intent.createChooser(i, tr("Прикрепить", "Attach")))
             true
         } catch (_: Exception) {
             filePathCallback = null
@@ -385,7 +385,7 @@ class WebActivity : AppCompatActivity() {
         val sp = getSharedPreferences("web", MODE_PRIVATE)
         if (sp.getString("lastMagic", null) == link) return
         sp.edit().putString("lastMagic", link).apply()
-        toast("Открываю ссылку для входа из буфера")
+        toast(tr("Открываю ссылку для входа из буфера", "Opening the sign-in link from the clipboard"))
         openLink(link)
     }
 
@@ -478,7 +478,7 @@ class WebActivity : AppCompatActivity() {
                 saveBytes(bytes, meta.substringBefore(';').ifBlank { mimeType ?: "application/octet-stream" }, name)
             }
             url.startsWith("http") -> {
-                toast("Скачиваю через VDS: $name")
+                toast(tr("Скачиваю через VDS: $name", "Downloading through VDS: $name"))
                 io.execute {
                     try {
                         val c = URL(url).openConnection(Proxy(Proxy.Type.HTTP, InetSocketAddress("127.0.0.1", proxyPort))) as HttpURLConnection
@@ -492,11 +492,11 @@ class WebActivity : AppCompatActivity() {
                         c.disconnect()
                         runOnUiThread { saveBytes(bytes, mimeType ?: c.contentType ?: "application/octet-stream", name) }
                     } catch (e: Exception) {
-                        runOnUiThread { toast("Не скачалось: ${e.message}") }
+                        runOnUiThread { toast(tr("Не скачалось: ${e.message}", "Download failed: ${e.message}")) }
                     }
                 }
             }
-            else -> toast("Этот тип ссылки скачать нельзя")
+            else -> toast(tr("Этот тип ссылки скачать нельзя", "This link type can't be downloaded"))
         }
     }
 
@@ -505,13 +505,13 @@ class WebActivity : AppCompatActivity() {
         fun save(base64: String, mime: String, name: String) {
             val bytes = runCatching { Base64.decode(base64, Base64.DEFAULT) }.getOrNull()
             runOnUiThread {
-                if (bytes == null) toast("Не скачалось: битые данные")
+                if (bytes == null) toast(tr("Не скачалось: битые данные", "Download failed: corrupted data"))
                 else saveBytes(bytes, mime.ifBlank { "application/octet-stream" }, name)
             }
         }
 
         @JavascriptInterface
-        fun fail(why: String) { runOnUiThread { toast("Не скачалось: $why") } }
+        fun fail(why: String) { runOnUiThread { toast(tr("Не скачалось: $why", "Download failed: $why")) } }
     }
 
     private fun saveBytes(bytes: ByteArray, mime: String, rawName: String) {
@@ -524,16 +524,16 @@ class WebActivity : AppCompatActivity() {
                     put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/Claude")
                 }
                 val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-                    ?: throw IllegalStateException("нет доступа к «Загрузкам»")
+                    ?: throw IllegalStateException(tr("нет доступа к «Загрузкам»", "no access to Downloads"))
                 contentResolver.openOutputStream(uri)?.use { it.write(bytes) }
-                toast("Сохранено: Загрузки/Claude/$name")
+                toast(tr("Сохранено: Загрузки/Claude/$name", "Saved: Downloads/Claude/$name"))
             } else {
                 val dir = File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "Claude").apply { mkdirs() }
                 File(dir, name).writeBytes(bytes)
-                toast("Сохранено: ${dir.absolutePath}/$name")
+                toast(tr("Сохранено: ${dir.absolutePath}/$name", "Saved: ${dir.absolutePath}/$name"))
             }
         } catch (e: Exception) {
-            toast("Не сохранилось: ${e.message}")
+            toast(tr("Не сохранилось: ${e.message}", "Save failed: ${e.message}"))
         }
     }
 
@@ -555,7 +555,7 @@ class WebActivity : AppCompatActivity() {
         overlaySpinner = LogoView(this)
         overlay.addView(overlaySpinner, LinearLayout.LayoutParams(dp(88), dp(88)))
         overlayText = TextView(this).apply {
-            text = "Открываю Claude через VDS…"
+            text = tr("Открываю Claude через VDS…", "Opening Claude through VDS…")
             textSize = 20f
             typeface = Palette.SERIF
             gravity = Gravity.CENTER
@@ -564,7 +564,7 @@ class WebActivity : AppCompatActivity() {
         }
         overlay.addView(overlayText)
         overlay.addView(TextView(this).apply {
-            text = "первый вход может занять несколько секунд"
+            text = tr("первый вход может занять несколько секунд", "the first start may take a few seconds")
             textSize = 12f
             gravity = Gravity.CENTER
             setTextColor(Color.parseColor("#A6A39A"))
@@ -588,9 +588,9 @@ class WebActivity : AppCompatActivity() {
             setPadding(dp(20), 0, dp(20), 0)
             setOnClickListener { click() }
         }
-        retryBox.addView(btn("Повторить", "#C96442") { retry() },
+        retryBox.addView(btn(tr("Повторить", "Retry"), "#C96442") { retry() },
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(46)).apply { rightMargin = dp(10) })
-        retryBox.addView(btn("Назад", "#30302E") { finish() },
+        retryBox.addView(btn(tr("Назад", "Back"), "#30302E") { finish() },
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(46)))
         overlay.addView(retryBox)
         return overlay
@@ -615,7 +615,7 @@ class WebActivity : AppCompatActivity() {
     private fun retry() {
         retryBox.visibility = View.GONE
         overlaySpinner.visibility = View.VISIBLE
-        overlayText.text = "Открываю Claude через VDS…"
+        overlayText.text = tr("Открываю Claude через VDS…", "Opening Claude through VDS…")
         web.loadUrl(web.url?.takeIf { it.startsWith("http") } ?: startUrl())
     }
 
@@ -645,7 +645,7 @@ class WebActivity : AppCompatActivity() {
             }
         } else {
             // Совсем старый WebView — прокси не поддерживает. Не грузим ничего, чтобы не уйти напрямую.
-            showOverlayError("Android System WebView слишком старый и не умеет прокси.\nОбновите его в Google Play — иначе Claude пошёл бы напрямую.")
+            showOverlayError(tr("Android System WebView слишком старый и не умеет прокси.\nОбновите его в Google Play — иначе Claude пошёл бы напрямую.", "Android System WebView is too old and can't use a proxy.\nUpdate it in Google Play — otherwise Claude would go directly."))
         }
     }
 

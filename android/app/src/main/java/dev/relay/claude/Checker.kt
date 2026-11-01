@@ -108,8 +108,8 @@ class Checker(private val ctx: Context, private val prefs: Prefs, private val pr
         out.write("CONNECT $host:$port HTTP/1.1\r\nHost: $host:$port\r\n\r\n".toByteArray())
         out.flush()
         val inp = BufferedInputStream(raw.getInputStream())
-        val status = readLine(inp) ?: throw java.io.IOException("нет ответа прокси")
-        if (!status.contains(" 200")) throw java.io.IOException("прокси: $status")
+        val status = readLine(inp) ?: throw java.io.IOException(tr("нет ответа прокси", "no reply from proxy"))
+        if (!status.contains(" 200")) throw java.io.IOException(tr("прокси: $status", "proxy: $status"))
         while (true) {
             val l = readLine(inp) ?: break
             if (l.isEmpty()) break
@@ -140,21 +140,21 @@ class Checker(private val ctx: Context, private val prefs: Prefs, private val pr
     /** Есть ли у телефона вообще интернет (до любых запросов к VDS). */
     private fun phoneOnline(): Pair<Boolean, String> {
         val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
-        val net = cm.activeNetwork ?: return false to "нет сети — включите Wi-Fi или мобильный интернет"
-        val caps = cm.getNetworkCapabilities(net) ?: return false to "нет сети"
-        if (!caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)) return false to "сеть без интернета"
+        val net = cm.activeNetwork ?: return false to tr("нет сети — включите Wi-Fi или мобильный интернет", "no network — turn on Wi-Fi or mobile data")
+        val caps = cm.getNetworkCapabilities(net) ?: return false to tr("нет сети", "no network")
+        if (!caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)) return false to tr("сеть без интернета", "network has no internet")
         val kind = when {
             caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) -> "Wi-Fi"
-            caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) -> "мобильный интернет"
-            caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_VPN) -> "через VPN"
-            else -> "есть"
+            caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) -> tr("мобильный интернет", "mobile data")
+            caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_VPN) -> tr("через VPN", "via VPN")
+            else -> tr("есть", "connected")
         }
         return true to kind
     }
 
     suspend fun runAll(items: List<CheckItem>, onUpdate: (CheckItem) -> Unit) = withContext(Dispatchers.IO) {
         fun item(id: String) = items.first { it.id == id }
-        fun start(id: String) { item(id).apply { status = Status.RUN; detail = "проверяю…" }.also(onUpdate) }
+        fun start(id: String) { item(id).apply { status = Status.RUN; detail = tr("проверяю…", "checking…") }.also(onUpdate) }
         fun set(id: String, ok: Boolean, detail: String, ms: Long) {
             item(id).apply { status = if (ok) Status.OK else Status.BAD; this.detail = detail; this.ms = ms }.also(onUpdate)
         }
@@ -174,7 +174,7 @@ class Checker(private val ctx: Context, private val prefs: Prefs, private val pr
             breathe(t)
             set("net", ok, d, now() - t)
         }
-        if (item("net").status != Status.OK) return@withContext skipRest("нет интернета")
+        if (item("net").status != Status.OK) return@withContext skipRest(tr("нет интернета", "no internet"))
 
         // 2. Сервер: своя VDS (claude-relay) — /healthz и токен; обычный SOCKS5 — рукопожатие с прокси
         start("vds")
@@ -184,13 +184,13 @@ class Checker(private val ctx: Context, private val prefs: Prefs, private val pr
                 val probe = LocalProxy(prefs.host, prefs.port, prefs.token, false, tls = false, user = prefs.user)
                 probe.openTunnel("api.country.is", 443).close()
                 breathe(t)
-                set("vds", true, "SOCKS5 ${prefs.host}:${prefs.port} · вход принят", now() - t)
+                set("vds", true, tr("SOCKS5 ${prefs.host}:${prefs.port} · вход принят", "SOCKS5 ${prefs.host}:${prefs.port} · login accepted"), now() - t)
             } catch (e: java.net.SocketTimeoutException) {
-                set("vds", false, "прокси не отвечает (таймаут) — проверьте адрес и порт", now() - t)
+                set("vds", false, tr("прокси не отвечает (таймаут) — проверьте адрес и порт", "proxy not responding (timeout) — check address and port"), now() - t)
             } catch (e: java.net.ConnectException) {
-                set("vds", false, "прокси отказал в соединении — неверный порт или он выключен", now() - t)
+                set("vds", false, tr("прокси отказал в соединении — неверный порт или он выключен", "proxy refused the connection — wrong port or it's off"), now() - t)
             } catch (e: Exception) {
-                set("vds", false, e.message ?: "нет связи с прокси", now() - t)
+                set("vds", false, e.message ?: tr("нет связи с прокси", "can't reach the proxy"), now() - t)
             }
         } else run {
             val t = now()
@@ -199,28 +199,28 @@ class Checker(private val ctx: Context, private val prefs: Prefs, private val pr
                 val isRelay = code == 200 && runCatching { JSONObject(body).has("build") }.getOrDefault(false)
                 if (!isRelay) {
                     // на порту живёт что-то чужое (часто VPN, который маскируется под сайт)
-                    set("vds", false, "на порту ${prefs.port} не сервер Claude Обход (HTTP $code) — сервер не установлен или занят другой программой", now() - t)
+                    set("vds", false, tr("на порту ${prefs.port} не сервер Claude Обход (HTTP $code) — сервер не установлен или занят другой программой", "port ${prefs.port} is not a Claude Obhod server (HTTP $code) — server not installed or port used by another program"), now() - t)
                 } else {
                     val (wc, _) = directGet("/relay/api/whoami")
                     val build = runCatching { JSONObject(body).optInt("build") }.getOrDefault(0)
                     breathe(t)
                     when (wc) {
-                        200 -> set("vds", true, "${prefs.host} · на связи", now() - t)
-                        401 -> set("vds", false, "сервер не принял токен — проверьте ссылку", now() - t)
-                        else -> set("vds", false, "токен: HTTP $wc (build $build)", now() - t)
+                        200 -> set("vds", true, tr("${prefs.host} · на связи", "${prefs.host} · online"), now() - t)
+                        401 -> set("vds", false, tr("сервер не принял токен — проверьте ссылку", "server rejected the token — check the link"), now() - t)
+                        else -> set("vds", false, tr("токен: HTTP $wc (build $build)", "token: HTTP $wc (build $build)"), now() - t)
                     }
                 }
             } catch (e: javax.net.ssl.SSLException) {
-                set("vds", false, if (prefs.allowSelfSigned) "ошибка TLS: ${e.message}" else "сертификат не доверенный — включите «самоподписанный» в настройках", now() - t)
+                set("vds", false, if (prefs.allowSelfSigned) tr("ошибка TLS: ${e.message}", "TLS error: ${e.message}") else tr("сертификат не доверенный — включите «самоподписанный» в настройках", "untrusted certificate — turn on \"self-signed\" in settings"), now() - t)
             } catch (e: java.net.SocketTimeoutException) {
-                set("vds", false, "VDS не отвечает (таймаут) — сервер не запущен или порт закрыт", now() - t)
+                set("vds", false, tr("VDS не отвечает (таймаут) — сервер не запущен или порт закрыт", "VDS not responding (timeout) — server not running or port closed"), now() - t)
             } catch (e: java.net.ConnectException) {
-                set("vds", false, "VDS отказал в соединении — сервер не запущен на порту ${prefs.port}", now() - t)
+                set("vds", false, tr("VDS отказал в соединении — сервер не запущен на порту ${prefs.port}", "VDS refused the connection — server isn't running on port ${prefs.port}"), now() - t)
             } catch (e: Exception) {
-                set("vds", false, e.message ?: "нет связи с VDS", now() - t)
+                set("vds", false, e.message ?: tr("нет связи с VDS", "can't reach the VDS"), now() - t)
             }
         }
-        if (item("vds").status != Status.OK) return@withContext skipRest("ждёт сервер")
+        if (item("vds").status != Status.OK) return@withContext skipRest(tr("ждёт сервер", "waiting for server"))
 
         // 3. Туннель: SOCKS5 внутри TLS до VDS и дальше в интернет
         start("tunnel")
@@ -229,12 +229,12 @@ class Checker(private val ctx: Context, private val prefs: Prefs, private val pr
             try {
                 tlsThroughProxy("api.country.is", 443)
                 breathe(t)
-                set("tunnel", true, if (prefs.isRelay) "трафик идёт через VDS" else "трафик идёт через прокси", now() - t)
+                set("tunnel", true, if (prefs.isRelay) tr("трафик идёт через VDS", "traffic goes through VDS") else tr("трафик идёт через прокси", "traffic goes through proxy"), now() - t)
             } catch (e: Exception) {
-                set("tunnel", false, e.message ?: "туннель не поднялся", now() - t)
+                set("tunnel", false, e.message ?: tr("туннель не поднялся", "tunnel didn't come up"), now() - t)
             }
         }
-        if (item("tunnel").status != Status.OK) return@withContext skipRest("ждёт туннель")
+        if (item("tunnel").status != Status.OK) return@withContext skipRest(tr("ждёт туннель", "waiting for tunnel"))
 
         // 4. Выход: какая страна видна снаружи
         start("exit")
@@ -250,7 +250,7 @@ class Checker(private val ctx: Context, private val prefs: Prefs, private val pr
                     country = j.optString("country")
                     breathe(t)
                     val ok = ip.isNotBlank() && country.isNotBlank() && country !in blocked
-                    set("exit", ok, if (ok) "${countryName(country)} · $ip" else "$country — тут Claude закрыт, нужен другой VDS", now() - t)
+                    set("exit", ok, if (ok) "${countryName(country)} · $ip" else tr("$country — тут Claude закрыт, нужен другой VDS", "$country — Claude is blocked here, you need another VDS"), now() - t)
                 } else set("exit", false, "HTTP $code", now() - t)
             } catch (e: Exception) {
                 set("exit", false, e.message ?: "", now() - t)
@@ -273,10 +273,10 @@ class Checker(private val ctx: Context, private val prefs: Prefs, private val pr
                 set(
                     "claude", siteOk && apiOk,
                     when {
-                        regionBlock -> "регион закрыт"
+                        regionBlock -> tr("регион закрыт", "region blocked")
                         !siteOk -> "claude.ai: HTTP ${r.code}"
-                        !apiOk -> "API: доступ запрещён (403)"
-                        else -> "claude.ai открывается"
+                        !apiOk -> tr("API: доступ запрещён (403)", "API: access denied (403)")
+                        else -> tr("claude.ai открывается", "claude.ai opens")
                     },
                     now() - t,
                 )
@@ -286,7 +286,9 @@ class Checker(private val ctx: Context, private val prefs: Prefs, private val pr
         }
     }
 
-    private fun countryName(c: String) = when (c) {
+    private fun countryName(c: String): String = if (Lang.en) {
+        runCatching { java.util.Locale("", c).getDisplayCountry(java.util.Locale.ENGLISH) }.getOrNull()?.ifBlank { null } ?: c
+    } else when (c) {
         "LV" -> "Латвия"; "LT" -> "Литва"; "EE" -> "Эстония"; "DE" -> "Германия"; "NL" -> "Нидерланды"
         "FI" -> "Финляндия"; "PL" -> "Польша"; "FR" -> "Франция"; "GB" -> "Великобритания"; "US" -> "США"
         "SE" -> "Швеция"; "CZ" -> "Чехия"; "KZ" -> "Казахстан"; "TR" -> "Турция"; "AM" -> "Армения"; "GE" -> "Грузия"
@@ -295,11 +297,11 @@ class Checker(private val ctx: Context, private val prefs: Prefs, private val pr
 
     companion object {
         fun items(): List<CheckItem> = listOf(
-            CheckItem("net", "Интернет на телефоне"),
-            CheckItem("vds", "Сервер (VDS или прокси)"),
-            CheckItem("tunnel", "Туннель"),
-            CheckItem("exit", "Выход в интернет"),
-            CheckItem("claude", "Claude доступен"),
+            CheckItem("net", tr("Интернет на телефоне", "Internet on the phone")),
+            CheckItem("vds", tr("Сервер (VDS или прокси)", "Server (VDS or proxy)")),
+            CheckItem("tunnel", tr("Туннель", "Tunnel")),
+            CheckItem("exit", tr("Выход в интернет", "Internet exit")),
+            CheckItem("claude", tr("Claude доступен", "Claude available")),
         )
     }
 }

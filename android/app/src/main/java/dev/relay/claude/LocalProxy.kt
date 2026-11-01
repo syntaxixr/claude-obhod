@@ -120,7 +120,7 @@ class LocalProxy(
     private fun socks5Handshake(sock: Socket, targetHost: String, targetPort: Int) {
         val out = sock.getOutputStream()
         val input = sock.getInputStream()
-        val who = if (tls) "VDS" else "Прокси"
+        val who = if (tls) "VDS" else tr("Прокси", "Proxy")
 
         // 1. приветствие. Своя VDS — только логин/пароль (0x02).
         //    Обычный SOCKS5 — логин/пароль, если он задан, и «без входа» (0x00).
@@ -132,7 +132,7 @@ class LocalProxy(
         out.write(byteArrayOf(0x05, methods.size.toByte()) + methods); out.flush()
         val g = readExact(input, 2)
         if (g[0] != 0x05.toByte()) {
-            throw IOException(if (tls) "VDS ответил не по SOCKS5 — обновите сервер Claude Обход" else "по этому адресу не SOCKS5-прокси")
+            throw IOException(if (tls) tr("VDS ответил не по SOCKS5 — обновите сервер Claude Обход", "VDS didn't answer as SOCKS5 — update the Claude Obhod server") else tr("по этому адресу не SOCKS5-прокси", "this address is not a SOCKS5 proxy"))
         }
         when (g[1].toInt() and 0xff) {
             0x00 -> Unit // вход не нужен
@@ -140,19 +140,19 @@ class LocalProxy(
                 // 2. логин/пароль (у своей VDS логин любой, пароль = токен)
                 val u = user.ifEmpty { "relay" }.toByteArray(Charsets.UTF_8)
                 val pass = token.toByteArray(Charsets.UTF_8)
-                if (u.size > 255 || pass.size > 255) throw IOException("логин или пароль длиннее 255 байт")
+                if (u.size > 255 || pass.size > 255) throw IOException(tr("логин или пароль длиннее 255 байт", "login or password longer than 255 bytes"))
                 out.write(byteArrayOf(0x01, u.size.toByte()) + u + byteArrayOf(pass.size.toByte()) + pass)
                 out.flush()
                 val a = readExact(input, 2)
-                if (a[1] != 0x00.toByte()) throw IOException(if (tls) "VDS отклонил токен" else "прокси не принял логин/пароль")
+                if (a[1] != 0x00.toByte()) throw IOException(if (tls) tr("VDS отклонил токен", "VDS rejected the token") else tr("прокси не принял логин/пароль", "proxy rejected the login/password"))
             }
-            0xff -> throw IOException(if (tls || token.isNotEmpty()) "$who не принял способ входа" else "прокси требует логин и пароль")
-            else -> throw IOException("$who: неизвестный способ входа")
+            0xff -> throw IOException(if (tls || token.isNotEmpty()) tr("$who не принял способ входа", "$who didn't accept the auth method") else tr("прокси требует логин и пароль", "proxy requires a login and password"))
+            else -> throw IOException(tr("$who: неизвестный способ входа", "$who: unknown auth method"))
         }
 
         // 3. CONNECT по имени — резолвит сам VDS, DNS оператора не участвует
         val h = targetHost.removePrefix("[").removeSuffix("]").toByteArray(Charsets.UTF_8)
-        if (h.isEmpty() || h.size > 255) throw IOException("плохое имя хоста")
+        if (h.isEmpty() || h.size > 255) throw IOException(tr("плохое имя хоста", "bad host name"))
         out.write(
             byteArrayOf(0x05, 0x01, 0x00, 0x03, h.size.toByte()) + h +
                 byteArrayOf((targetPort shr 8).toByte(), targetPort.toByte())
@@ -167,18 +167,18 @@ class LocalProxy(
             0x01 -> 4
             0x04 -> 16
             0x03 -> readExact(input, 1)[0].toInt() and 0xff
-            else -> throw IOException("VDS: странный ответ SOCKS5")
+            else -> throw IOException(tr("VDS: странный ответ SOCKS5", "VDS: odd SOCKS5 reply"))
         }
         readExact(input, addrLen + 2)
     }
 
     private fun socksError(rep: Int): String = when (rep) {
-        0x02 -> "сервер запретил адрес (локальная сеть)"
-        0x03 -> "сервер: сеть недоступна"
-        0x04 -> "сервер: хост не найден/недоступен"
-        0x05 -> "сервер: соединение отклонено"
-        0x07 -> "сервер: команда не поддерживается"
-        else -> "сервер: ошибка SOCKS5 ($rep)"
+        0x02 -> tr("сервер запретил адрес (локальная сеть)", "server blocked the address (local network)")
+        0x03 -> tr("сервер: сеть недоступна", "server: network unreachable")
+        0x04 -> tr("сервер: хост не найден/недоступен", "server: host not found/unreachable")
+        0x05 -> tr("сервер: соединение отклонено", "server: connection refused")
+        0x07 -> tr("сервер: команда не поддерживается", "server: command not supported")
+        else -> tr("сервер: ошибка SOCKS5 ($rep)", "server: SOCKS5 error ($rep)")
     }
 
     private fun readExact(input: java.io.InputStream, n: Int): ByteArray {
@@ -186,7 +186,7 @@ class LocalProxy(
         var got = 0
         while (got < n) {
             val k = input.read(b, got, n - got)
-            if (k < 0) throw IOException("VDS закрыл соединение")
+            if (k < 0) throw IOException(tr("VDS закрыл соединение", "VDS closed the connection"))
             got += k
         }
         return b
@@ -219,7 +219,7 @@ class LocalProxy(
             // мобильные сети иногда рвут первое соединение — одна повторная попытка
             val remote = try {
                 try { openTunnel(th, tp) } catch (e: IOException) {
-                    if (e.message?.startsWith("VDS") == true && e.message?.contains("закрыл") != true) throw e
+                    if (e.message?.startsWith("VDS") == true && e.message?.contains("закрыл") != true && e.message?.contains("closed") != true) throw e
                     Thread.sleep(300)
                     openTunnel(th, tp)
                 }

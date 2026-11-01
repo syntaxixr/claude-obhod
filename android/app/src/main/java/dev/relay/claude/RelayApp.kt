@@ -7,6 +7,7 @@ class RelayApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        Lang.init(this)
         applyLocale()
     }
 
@@ -15,9 +16,9 @@ class RelayApp : Application() {
      * Accept-Language, а не ru-RU. Ставим до первого запуска WebView.
      */
     fun applyLocale() {
-        val list = android.os.LocaleList(
-            java.util.Locale("ru", "LV"), java.util.Locale("ru"), java.util.Locale("en", "US"),
-        )
+        // в английском режиме — en-US: самый обычный язык, ничем не выделяется
+        val list = if (Lang.en) android.os.LocaleList(java.util.Locale("en", "US"), java.util.Locale("en"))
+        else android.os.LocaleList(java.util.Locale("ru", "LV"), java.util.Locale("ru"), java.util.Locale("en", "US"))
         android.os.LocaleList.setDefault(list)
         java.util.Locale.setDefault(list[0])
     }

@@ -16,26 +16,26 @@ data class RelayLink(val host: String, val port: Int, val token: String) {
         /** Бросает IllegalArgumentException с понятным текстом, если ссылка не распознана. */
         fun parse(raw: String): RelayLink {
             var s = raw.trim().replace(Regex("\\s+"), "")
-            if (s.isEmpty()) throw IllegalArgumentException("Вставьте socks5-ссылку")
+            if (s.isEmpty()) throw IllegalArgumentException(tr("Вставьте socks5-ссылку", "Paste a socks5 link"))
             s = s.replace(Regex("^(socks5h?|socks)://", RegexOption.IGNORE_CASE), "")
             if (Regex("^[a-z][a-z0-9+.-]*://", RegexOption.IGNORE_CASE).containsMatchIn(s)) {
-                throw IllegalArgumentException("Это не socks5-ссылка. Нужна вида socks5://relay:ТОКЕН@адрес")
+                throw IllegalArgumentException(tr("Это не socks5-ссылка. Нужна вида socks5://relay:ТОКЕН@адрес", "This isn't a socks5 link. Expected socks5://relay:TOKEN@address"))
             }
 
             val at = s.lastIndexOf('@')
-            if (at < 0) throw IllegalArgumentException("В ссылке нет токена. Нужна вида socks5://relay:ТОКЕН@адрес")
+            if (at < 0) throw IllegalArgumentException(tr("В ссылке нет токена. Нужна вида socks5://relay:ТОКЕН@адрес", "The link has no token. Expected socks5://relay:TOKEN@address"))
             val userInfo = s.substring(0, at)
             val hostPart = s.substring(at + 1).substringBefore('/').substringBefore('?').substringBefore('#')
 
             val pass = if (userInfo.contains(':')) userInfo.substringAfter(':') else userInfo
             val token = URLDecoder.decode(pass.replace("+", "%2B"), "UTF-8").trim()
-            if (token.length < 16) throw IllegalArgumentException("Токен в ссылке слишком короткий (нужно от 16 символов)")
+            if (token.length < 16) throw IllegalArgumentException(tr("Токен в ссылке слишком короткий (нужно от 16 символов)", "The token in the link is too short (16+ characters needed)"))
 
             val host: String
             val portStr: String?
             if (hostPart.startsWith("[")) {                       // [IPv6]:порт
                 val end = hostPart.indexOf(']')
-                if (end < 0) throw IllegalArgumentException("Адрес VDS записан неверно")
+                if (end < 0) throw IllegalArgumentException(tr("Адрес VDS записан неверно", "The VDS address is malformed"))
                 host = hostPart.substring(1, end)
                 portStr = hostPart.substring(end + 1).removePrefix(":").ifEmpty { null }
             } else {
@@ -43,10 +43,10 @@ data class RelayLink(val host: String, val port: Int, val token: String) {
                 host = if (c >= 0) hostPart.substring(0, c) else hostPart
                 portStr = if (c >= 0) hostPart.substring(c + 1) else null
             }
-            if (host.isBlank()) throw IllegalArgumentException("В ссылке нет адреса VDS")
+            if (host.isBlank()) throw IllegalArgumentException(tr("В ссылке нет адреса VDS", "The link has no VDS address"))
             val port = if (portStr == null) 443 else portStr.toIntOrNull()
-                ?: throw IllegalArgumentException("Порт в ссылке не число: $portStr")
-            if (port !in 1..65535) throw IllegalArgumentException("Порт вне диапазона: $port")
+                ?: throw IllegalArgumentException(tr("Порт в ссылке не число: $portStr", "Port in the link is not a number: $portStr"))
+            if (port !in 1..65535) throw IllegalArgumentException(tr("Порт вне диапазона: $port", "Port out of range: $port"))
 
             return RelayLink(host.lowercase(), port, token)
         }
@@ -71,10 +71,10 @@ data class SocksLink(val host: String, val port: Int, val user: String, val pass
     companion object {
         fun parse(raw: String): SocksLink {
             var s = raw.trim().replace(Regex("\\s+"), "")
-            if (s.isEmpty()) throw IllegalArgumentException("Вставьте адрес SOCKS5-прокси")
+            if (s.isEmpty()) throw IllegalArgumentException(tr("Вставьте адрес SOCKS5-прокси", "Paste a SOCKS5 proxy address"))
             s = s.replace(Regex("^(socks5h?|socks)://", RegexOption.IGNORE_CASE), "")
             if (Regex("^[a-z][a-z0-9+.-]*://", RegexOption.IGNORE_CASE).containsMatchIn(s)) {
-                throw IllegalArgumentException("Нужен адрес SOCKS5, а не ссылка на сайт")
+                throw IllegalArgumentException(tr("Нужен адрес SOCKS5, а не ссылка на сайт", "Need a SOCKS5 address, not a website link"))
             }
             s = s.substringBefore('/').substringBefore('?').substringBefore('#')
 
@@ -102,7 +102,7 @@ data class SocksLink(val host: String, val port: Int, val user: String, val pass
             val portStr: String?
             if (hostPart.startsWith("[")) {
                 val end = hostPart.indexOf(']')
-                if (end < 0) throw IllegalArgumentException("Адрес прокси записан неверно")
+                if (end < 0) throw IllegalArgumentException(tr("Адрес прокси записан неверно", "The proxy address is malformed"))
                 host = hostPart.substring(1, end)
                 portStr = hostPart.substring(end + 1).removePrefix(":").ifEmpty { null }
             } else {
@@ -110,10 +110,10 @@ data class SocksLink(val host: String, val port: Int, val user: String, val pass
                 host = if (c >= 0) hostPart.substring(0, c) else hostPart
                 portStr = if (c >= 0) hostPart.substring(c + 1) else null
             }
-            if (host.isBlank()) throw IllegalArgumentException("В адресе нет хоста прокси")
+            if (host.isBlank()) throw IllegalArgumentException(tr("В адресе нет хоста прокси", "The address has no proxy host"))
             val port = if (portStr == null) 1080 else portStr.toIntOrNull()
-                ?: throw IllegalArgumentException("Порт прокси не число: $portStr")
-            if (port !in 1..65535) throw IllegalArgumentException("Порт вне диапазона: $port")
+                ?: throw IllegalArgumentException(tr("Порт прокси не число: $portStr", "Proxy port is not a number: $portStr"))
+            if (port !in 1..65535) throw IllegalArgumentException(tr("Порт вне диапазона: $port", "Port out of range: $port"))
             return SocksLink(host.lowercase(), port, user, pass)
         }
     }

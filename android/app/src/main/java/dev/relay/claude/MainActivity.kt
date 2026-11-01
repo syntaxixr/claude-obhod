@@ -111,13 +111,20 @@ class MainActivity : AppCompatActivity() {
         subheader.text = serverLabel()
         val askSetup = {
             if (!prefs.configured) {
-                header.text = "Claude Обход"
-                hint.text = "Вставь ссылку от своей VDS или адрес SOCKS5 — дальше всё само."
+                header.text = tr("Claude Обход", "Claude Obhod")
+                hint.text = tr("Вставь ссылку от своей VDS или адрес SOCKS5 — дальше всё само.", "Paste the link from your VDS or a SOCKS5 address — the rest is automatic.")
                 setEnter(EnterState.SETUP)
                 showSettings(firstRun = true)
             }
         }
         if (!prefs.rulesAccepted) showRules(firstRun = true) { askSetup() } else askSetup()
+    }
+
+    /** Переключить язык и перерисовать экран. */
+    fun switchLanguage() {
+        Lang.set(this, !Lang.en)
+        app.applyLocale()
+        recreate()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -147,7 +154,7 @@ class MainActivity : AppCompatActivity() {
         (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
 
     private fun serverLabel(): String = when {
-        prefs.host.isBlank() -> "не настроено"
+        prefs.host.isBlank() -> tr("не настроено", "not set up")
         prefs.isRelay -> "VDS ${prefs.host}${if (prefs.port == 443) "" else ":" + prefs.port}"
         else -> "SOCKS5 ${prefs.host}:${prefs.port}"
     }
@@ -191,7 +198,7 @@ class MainActivity : AppCompatActivity() {
         val dot = View(this).apply { background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Palette.ACCENT) } }
         pill.addView(dot, LinearLayout.LayoutParams(dp(7), dp(7)).apply { rightMargin = dp(8) })
         badge = TextView(this).apply {
-            text = "ТОЛЬКО ЧЕРЕЗ VDS"
+            text = tr("ТОЛЬКО ЧЕРЕЗ VDS", "VDS ONLY")
             textSize = 11f
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             letterSpacing = 0.06f
@@ -207,7 +214,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         header = TextView(this).apply {
-            text = "Проверяю подключение"
+            text = tr("Проверяю подключение", "Checking connection")
             textSize = 28f
             typeface = Palette.SERIF
             gravity = Gravity.CENTER
@@ -215,7 +222,7 @@ class MainActivity : AppCompatActivity() {
         }
         root.addView(header)
         subheader = TextView(this).apply {
-            text = "не настроено"
+            text = tr("не настроено", "not set up")
             textSize = 13f
             gravity = Gravity.CENTER
             setTextColor(color(R.color.dim))
@@ -256,7 +263,7 @@ class MainActivity : AppCompatActivity() {
         // главная кнопка + крутилка внутри неё
         val enterBox = FrameLayout(this).apply { clipChildren = false; clipToPadding = false }
         enter = Button(this).apply {
-            text = "Проверяю…"
+            text = tr("Проверяю…", "Checking…")
             isAllCaps = false
             textSize = 16f
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
@@ -293,15 +300,15 @@ class MainActivity : AppCompatActivity() {
             visibility = View.GONE
             setOnClickListener { click() }
         }
-        webLink = link("Открыть в приложении Claude (тоже только через VDS)") { if (allOk) confirmClaudeApp() }
+        webLink = link(tr("Открыть в приложении Claude (тоже только через VDS)", "Open in the Claude app (also only through VDS)")) { if (allOk) confirmClaudeApp() }
         root.addView(webLink, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
-        vpnOff = link("Выключить защиту") { stopVpn(); vpnOff.postDelayed({ refreshLinks() }, 500) }
+        vpnOff = link(tr("Выключить защиту", "Turn off protection")) { stopVpn(); vpnOff.postDelayed({ refreshLinks() }, 500) }
         root.addView(vpnOff, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
-        mailLink = link("Вход по почте: открывать ссылку из письма здесь") { MailLinks.advise(this) }
+        mailLink = link(tr("Вход по почте: открывать ссылку из письма здесь", "Email sign-in: open the link from the email here")) { MailLinks.advise(this) }
         root.addView(mailLink, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
 
         hint = MarkedText(this).apply {
-            text = "Проверяю интернет и связь с VDS…"
+            text = tr("Проверяю интернет и связь с VDS…", "Checking internet and VDS connection…")
             textSize = 13f
             gravity = Gravity.CENTER
             setTextColor(color(R.color.dim))
@@ -324,15 +331,25 @@ class MainActivity : AppCompatActivity() {
             setPadding(dp(16), 0, dp(16), 0)
             setOnClickListener { click() }
         }
-        tools.addView(small("Проверить") { runChecks() }, LinearLayout.LayoutParams(WRAP_CONTENT, dp(40)).apply { rightMargin = dp(8) })
-        tools.addView(small("Настройки") { showSettings(false) }, LinearLayout.LayoutParams(WRAP_CONTENT, dp(40)).apply { rightMargin = dp(8) })
-        tools.addView(small("Инструкция") { showRules(false) }, LinearLayout.LayoutParams(WRAP_CONTENT, dp(40)))
+        tools.addView(small(tr("Проверить", "Check")) { runChecks() }, LinearLayout.LayoutParams(WRAP_CONTENT, dp(40)).apply { rightMargin = dp(8) })
+        tools.addView(small(tr("Настройки", "Settings")) { showSettings(false) }, LinearLayout.LayoutParams(WRAP_CONTENT, dp(40)).apply { rightMargin = dp(8) })
+        tools.addView(small(tr("Инструкция", "Guide")) { showRules(false) }, LinearLayout.LayoutParams(WRAP_CONTENT, dp(40)))
         root.addView(tools)
+
+        // язык интерфейса: русский / английский
+        root.addView(TextView(this).apply {
+            text = Lang.switchLabel
+            textSize = 13f
+            gravity = Gravity.CENTER
+            setTextColor(Palette.DIM)
+            setPadding(dp(16), dp(14), dp(16), dp(4))
+            setOnClickListener { switchLanguage() }
+        }, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { gravity = Gravity.CENTER_HORIZONTAL })
 
         // распорка, чтобы подпись прижалась к низу
         root.addView(View(this), LinearLayout.LayoutParams(MATCH_PARENT, 0, 1f))
         root.addView(TextView(this).apply {
-            text = "build ${BuildConfig.VERSION_NAME} · весь трафик Claude идёт через ваш сервер"
+            text = tr("build ${BuildConfig.VERSION_NAME} · весь трафик Claude идёт через ваш сервер", "build ${BuildConfig.VERSION_NAME} · all Claude traffic goes through your server")
             textSize = 10f
             gravity = Gravity.CENTER
             setTextColor(Palette.FAINT)
@@ -378,7 +395,7 @@ class MainActivity : AppCompatActivity() {
         }
         texts.addView(label)
         val detail = TextView(this).apply {
-            text = "ожидание"
+            text = tr("ожидание", "waiting")
             textSize = 12f
             setTextColor(color(R.color.dim))
         }
@@ -397,9 +414,9 @@ class MainActivity : AppCompatActivity() {
     /** Показывает состояние строки с анимацией смены статуса. */
     private fun renderRow(item: CheckItem) {
         val rv = rowViews[item.id] ?: return
-        rv.detail.text = item.detail.ifBlank { if (item.status == Status.WAIT) "ожидание" else "" }
+        rv.detail.text = item.detail.ifBlank { if (item.status == Status.WAIT) tr("ожидание", "waiting") else "" }
         rv.detail.setTextColor(color(if (item.status == Status.BAD) R.color.red else R.color.dim))
-        rv.ms.text = if (item.ms > 0 && item.status != Status.RUN) "${item.ms} мс" else ""
+        rv.ms.text = if (item.ms > 0 && item.status != Status.RUN) tr("${item.ms} мс", "${item.ms} ms") else ""
         if (rv.shown == item.status) return
         rv.shown = item.status
         when (item.status) {
@@ -488,13 +505,13 @@ class MainActivity : AppCompatActivity() {
     private fun startLogoPulse() {
         logo.setState(LogoView.State.CHECKING)
         aurora.setMood(Palette.ACCENT)
-        setBadge("ТОЛЬКО ЧЕРЕЗ VDS")
+        setBadge(tr("ТОЛЬКО ЧЕРЕЗ VDS", "VDS ONLY"))
     }
 
     private fun stopLogoPulse(ok: Boolean) {
         logo.setState(if (ok) LogoView.State.OK else LogoView.State.FAIL)
         aurora.setMood(if (ok) Palette.ACCENT else Palette.ERR)
-        setBadge(if (ok) "ГОТОВО · ТОЛЬКО ЧЕРЕЗ VDS" else "НЕТ ПОДКЛЮЧЕНИЯ")
+        setBadge(if (ok) tr("ГОТОВО · ТОЛЬКО ЧЕРЕЗ VDS", "READY · VDS ONLY") else tr("НЕТ ПОДКЛЮЧЕНИЯ", "NO CONNECTION"))
     }
 
     private enum class EnterState { SETUP, CHECKING, READY, FAILED, CONNECTING }
@@ -511,18 +528,18 @@ class MainActivity : AppCompatActivity() {
         enterSpinner.visibility = if (state == EnterState.CHECKING || state == EnterState.CONNECTING) View.VISIBLE else View.GONE
         when (state) {
             EnterState.SETUP -> {
-                enter.text = "Вставить ссылку"
+                enter.text = tr("Вставить ссылку", "Paste link")
                 enter.isEnabled = true
                 enter.background = glowButton()
             }
             EnterState.CHECKING -> {
-                enter.text = "Проверяю…"
+                enter.text = tr("Проверяю…", "Checking…")
                 enter.isEnabled = false
                 enter.background = round(14, Palette.CARD, Palette.LINE)
                 enter.setTextColor(Palette.DIM)
             }
             EnterState.READY -> {
-                enter.text = "Открыть Claude"
+                enter.text = tr("Открыть Claude", "Open Claude")
                 enter.isEnabled = true
                 enter.background = glowButton()
                 // кнопка «дышит» красным свечением, приглашая нажать
@@ -540,13 +557,13 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             EnterState.FAILED -> {
-                enter.text = "Повторить проверку"
+                enter.text = tr("Повторить проверку", "Check again")
                 enter.isEnabled = true
                 enter.background = round(14, Palette.alpha(Palette.ERR, 0x1A), Palette.ERR)
                 enter.setTextColor(Palette.ERR)
             }
             EnterState.CONNECTING -> {
-                enter.text = "Подключаюсь…"
+                enter.text = tr("Подключаюсь…", "Connecting…")
                 enter.isEnabled = false
                 enter.background = glowButton()
             }
@@ -566,7 +583,7 @@ class MainActivity : AppCompatActivity() {
     private fun runChecks() {
         if (!prefs.configured) return
         if (!app.ensureProxy(prefs)) {
-            hint.text = "Не удалось поднять локальный прокси"
+            hint.text = tr("Не удалось поднять локальный прокси", "Couldn't start the local proxy")
             setEnter(EnterState.FAILED)
             return
         }
@@ -574,8 +591,8 @@ class MainActivity : AppCompatActivity() {
         checking = true
         allOk = false
         subheader.text = serverLabel()
-        header.text = "Проверяю подключение"
-        hint.text = "Проверяю интернет и связь с сервером…"
+        header.text = tr("Проверяю подключение", "Checking connection")
+        hint.text = tr("Проверяю интернет и связь с сервером…", "Checking internet and server connection…")
         setEnter(EnterState.CHECKING)
         webLink.visibility = View.GONE
         startLogoPulse()
@@ -605,20 +622,20 @@ class MainActivity : AppCompatActivity() {
         stopLogoPulse(allOk)
         if (allOk) {
             val exit = items.first { it.id == "exit" }.detail.substringBefore(" · ")
-            header.text = "Всё готово"
-            subheader.text = "${serverLabel()} · выход: $exit"
-            hint.text = "Claude откроется прямо здесь — только через VDS. Российский IP не засветится."
+            header.text = tr("Всё готово", "All set")
+            subheader.text = tr("${serverLabel()} · выход: $exit", "${serverLabel()} · exit: $exit")
+            hint.text = tr("Claude откроется прямо здесь — только через VDS. Российский IP не засветится.", "Claude opens right here — only through VDS. Your real IP won't be exposed.")
             animateProgress(100, ok = true)
             setEnter(EnterState.READY)
             refreshLinks()
             warmUpWebView()
             if (pendingLink != null) {
-                hint.text = "Открываю ссылку для входа…"
+                hint.text = tr("Открываю ссылку для входа…", "Opening the sign-in link…")
                 openClaude()
             }
         } else {
             val first = bad.first()
-            header.text = "Нет подключения"
+            header.text = tr("Нет подключения", "No connection")
             hint.text = "${first.label}: ${first.detail}"
             animateProgress(100 - bad.size * 100 / items.size, ok = false)
             setEnter(EnterState.FAILED)
@@ -653,7 +670,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun withShield(optional: Boolean, next: () -> Unit) {
         if (!app.ensureProxy(prefs)) {
-            hint.text = "Не удалось поднять локальный прокси"
+            hint.text = tr("Не удалось поднять локальный прокси", "Couldn't start the local proxy")
             return
         }
         if (RelayVpnService.running && RelayVpnService.port == app.proxyPort) {
@@ -663,7 +680,7 @@ class MainActivity : AppCompatActivity() {
         afterShield = next
         shieldOptional = optional
         setEnter(EnterState.CONNECTING)
-        hint.text = "Включаю защиту — наружу пойдёт только VDS…"
+        hint.text = tr("Включаю защиту — наружу пойдёт только VDS…", "Turning on protection — only the VDS goes out…")
         if (android.os.Build.VERSION.SDK_INT >= 33 &&
             checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED
         ) {
@@ -697,7 +714,7 @@ class MainActivity : AppCompatActivity() {
                         next?.invoke()
                     }
                     RelayVpnService.lastError != null || System.currentTimeMillis() - started > 5000 -> {
-                        hint.text = "Защита не включилась: ${RelayVpnService.lastError ?: "нет ответа"}"
+                        hint.text = tr("Защита не включилась: ", "Protection didn't turn on: ") + (RelayVpnService.lastError ?: tr("нет ответа", "no response"))
                         setEnter(EnterState.READY)
                         refreshLinks()
                         afterShield = null
@@ -714,25 +731,28 @@ class MainActivity : AppCompatActivity() {
         afterShield = null
         setEnter(EnterState.READY)
         if (!shieldOptional || next == null) {
-            hint.text = "Без разрешения на VPN приложение Claude пошло бы напрямую — не открываю."
+            hint.text = tr("Без разрешения на VPN приложение Claude пошло бы напрямую — не открываю.", "Without VPN permission the Claude app would go directly — not opening it.")
             return
         }
         AlertDialog.Builder(this)
-            .setTitle("Открыть без защиты?")
+            .setTitle(tr("Открыть без защиты?", "Open without protection?"))
             .setMessage(
-                "Claude всё равно пойдёт через VDS, но без защиты страница теоретически может " +
+                tr("Claude всё равно пойдёт через VDS, но без защиты страница теоретически может " +
                     "узнать ваш настоящий IP через WebRTC, а DNS-запросы увидит оператор.\n\n" +
-                    "Рекомендуем нажать «Открыть Claude» ещё раз и разрешить VPN."
+                    "Рекомендуем нажать «Открыть Claude» ещё раз и разрешить VPN.",
+                    "Claude will still go through the VDS, but without protection the page could in theory " +
+                    "learn your real IP via WebRTC, and your carrier would see the DNS queries.\n\n" +
+                    "We recommend tapping \"Open Claude\" again and allowing the VPN.")
             )
-            .setPositiveButton("Открыть без защиты") { _, _ -> next() }
-            .setNegativeButton("Отмена", null)
+            .setPositiveButton(tr("Открыть без защиты", "Open without protection")) { _, _ -> next() }
+            .setNegativeButton(tr("Отмена", "Cancel"), null)
             .show()
     }
 
     private fun stopVpn() {
         if (!RelayVpnService.running) return
         startService(Intent(this, RelayVpnService::class.java).setAction(RelayVpnService.ACTION_STOP))
-        hint.text = "Защита выключена. Приложение Claude теперь ходит напрямую — не открывайте его без защиты."
+        hint.text = tr("Защита выключена. Приложение Claude теперь ходит напрямую — не открывайте его без защиты.", "Protection is off. The Claude app now goes directly — don't open it without protection.")
     }
 
     // ---------- Claude здесь (главный способ) ----------
@@ -740,7 +760,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun launchWeb() {
         setEnter(EnterState.CONNECTING)
-        hint.text = "Открываю Claude через VDS…"
+        hint.text = tr("Открываю Claude через VDS…", "Opening Claude through VDS…")
         val i = Intent(this, WebActivity::class.java).putExtra("port", app.proxyPort)
         pendingLink?.let { i.putExtra(WebActivity.EXTRA_LINK, it) }
         pendingLink = null
@@ -761,16 +781,21 @@ class MainActivity : AppCompatActivity() {
      */
     private fun confirmClaudeApp() {
         AlertDialog.Builder(this)
-            .setTitle("Открыть приложение Claude?")
+            .setTitle(tr("Открыть приложение Claude?", "Open the Claude app?"))
             .setMessage(
-                "IP будет только латвийский — защита не выпустит приложение напрямую.\n\n" +
+                tr("IP будет только латвийский — защита не выпустит приложение напрямую.\n\n" +
                     "Но само приложение Claude видит страну SIM-карты и язык телефона — " +
                     "по ним можно понять, что вы в России. Спрятать это мы не можем.\n\n" +
                     "Внутри Claude Обход (кнопка «Открыть Claude») SIM-карта не видна, а язык — " +
-                    "«русский, Латвия». Это самый незаметный вариант."
+                    "«русский, Латвия». Это самый незаметный вариант.",
+                    "Only your server's IP will be visible — protection won't let the app go directly.\n\n" +
+                    "But the Claude app itself sees your SIM card's country and the phone's language — " +
+                    "they can reveal where you really are. We can't hide that.\n\n" +
+                    "Inside Claude Obhod (the \"Open Claude\" button) the SIM card isn't visible and the language is " +
+                    "\"English (US)\". That's the least noticeable option.")
             )
-            .setPositiveButton("Открыть всё равно") { _, _ -> openClaudeApp() }
-            .setNegativeButton("Отмена", null)
+            .setPositiveButton(tr("Открыть всё равно", "Open anyway")) { _, _ -> openClaudeApp() }
+            .setNegativeButton(tr("Отмена", "Cancel"), null)
             .show()
     }
 
@@ -778,7 +803,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun launchClaudeApp() {
         if (!RelayVpnService.claudeAppIncluded) {
-            hint.text = "Приложение Claude не найдено — открываю Claude здесь"
+            hint.text = tr("Приложение Claude не найдено — открываю Claude здесь", "Claude app not found — opening Claude here")
             launchWeb()
             return
         }
@@ -788,14 +813,14 @@ class MainActivity : AppCompatActivity() {
         }
         val launch = packageManager.getLaunchIntentForPackage(BuildConfig.VPN_APP)
         if (launch == null) {
-            hint.text = "Приложение Claude не найдено — открываю Claude здесь"
+            hint.text = tr("Приложение Claude не найдено — открываю Claude здесь", "Claude app not found — opening Claude here")
             launchWeb()
             return
         }
         launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(launch)
         setEnter(EnterState.READY)
-        hint.text = "Защита включена — приложение Claude ходит только через VDS."
+        hint.text = tr("Защита включена — приложение Claude ходит только через VDS.", "Protection is on — the Claude app goes only through VDS.")
         refreshLinks()
     }
 
@@ -842,11 +867,11 @@ class MainActivity : AppCompatActivity() {
             setTextColor(color(R.color.text))
             buttonTintList = android.content.res.ColorStateList.valueOf(color(R.color.accent))
         }
-        val rRelay = radio(1001, "Своя VDS (сервер Claude Обход) — рекомендуется")
-        val rSocks = radio(1002, "Обычный SOCKS5-прокси")
+        val rRelay = radio(1001, tr("Своя VDS (сервер Claude Обход) — рекомендуется", "Your own VDS (Claude Obhod server) — recommended"))
+        val rSocks = radio(1002, tr("Обычный SOCKS5-прокси", "Regular SOCKS5 proxy"))
         group.addView(rRelay)
         group.addView(rSocks)
-        box.addView(label("Через что подключаться"))
+        box.addView(label(tr("Через что подключаться", "Connect through")))
         box.addView(group)
 
         val explain = TextView(this).apply {
@@ -877,7 +902,7 @@ class MainActivity : AppCompatActivity() {
 
         // кнопка «Вставить из буфера» — чтобы не целиться пальцем в поле
         box.addView(Button(this).apply {
-            text = "Вставить из буфера"
+            text = tr("Вставить из буфера", "Paste from clipboard")
             isAllCaps = false
             textSize = 13f
             setTextColor(color(R.color.text))
@@ -890,13 +915,13 @@ class MainActivity : AppCompatActivity() {
                 val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 val clip = cm.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)
                     ?.coerceToText(this@MainActivity)?.toString()?.trim().orEmpty()
-                if (clip.isEmpty()) Toast.makeText(this@MainActivity, "Буфер пуст", Toast.LENGTH_SHORT).show()
+                if (clip.isEmpty()) Toast.makeText(this@MainActivity, tr("Буфер пуст", "Clipboard is empty"), Toast.LENGTH_SHORT).show()
                 else linkField.setText(clip)
             }
         }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply { topMargin = dp(8) })
 
         val self = android.widget.CheckBox(this).apply {
-            text = "Разрешить самоподписанный сертификат (сервер ставили по IP)"
+            text = tr("Разрешить самоподписанный сертификат (сервер ставили по IP)", "Allow self-signed certificate (server installed by IP)")
             textSize = 12f
             setTextColor(color(R.color.dim))
             isChecked = prefs.allowSelfSigned
@@ -905,7 +930,7 @@ class MainActivity : AppCompatActivity() {
         box.addView(self)
 
         val guide = TextView(this).apply {
-            text = "Как поставить свой сервер — инструкция на GitHub"
+            text = tr("Как поставить свой сервер — инструкция на GitHub", "How to set up your own server — guide on GitHub")
             textSize = 12.5f
             setTextColor(color(R.color.accent))
             setPadding(0, dp(14), 0, dp(6))
@@ -924,15 +949,20 @@ class MainActivity : AppCompatActivity() {
             mode = m
             val relay = m != Prefs.MODE_SOCKS
             explain.text = if (relay) {
-                "Ссылку socks5://relay:ТОКЕН@адрес печатает сервер Claude Обход при установке на вашу VDS. " +
-                    "Соединение шифруется и снаружи выглядит как обычный HTTPS."
+                tr("Ссылку socks5://relay:ТОКЕН@адрес печатает сервер Claude Обход при установке на вашу VDS. " +
+                    "Соединение шифруется и снаружи выглядит как обычный HTTPS.",
+                    "The Claude Obhod server prints the socks5://relay:TOKEN@address link when you install it on your VDS. " +
+                    "The connection is encrypted and looks like ordinary HTTPS from outside.")
             } else {
-                "Подойдёт адрес от любого провайдера SOCKS5. Внимание: обычный SOCKS5 не шифруется — " +
+                tr("Подойдёт адрес от любого провайдера SOCKS5. Внимание: обычный SOCKS5 не шифруется — " +
                     "провайдер видит, к каким сайтам вы подключаетесь, и может такой прокси блокировать. " +
-                    "Надёжнее своя VDS."
+                    "Надёжнее своя VDS.",
+                    "Any SOCKS5 provider's address works. Note: plain SOCKS5 isn't encrypted — " +
+                    "your ISP sees which sites you connect to and may block such a proxy. " +
+                    "Your own VDS is more reliable.")
             }
-            linkLabel.text = if (relay) "Ссылка от вашего сервера" else "Адрес SOCKS5-прокси"
-            linkField.hint = if (relay) "socks5://relay:ТОКЕН@relay.example.com" else "socks5://логин:пароль@хост:порт  или  хост:порт:логин:пароль"
+            linkLabel.text = if (relay) tr("Ссылка от вашего сервера", "Link from your server") else tr("Адрес SOCKS5-прокси", "SOCKS5 proxy address")
+            linkField.hint = if (relay) tr("socks5://relay:ТОКЕН@relay.example.com", "socks5://relay:TOKEN@relay.example.com") else tr("socks5://логин:пароль@хост:порт  или  хост:порт:логин:пароль", "socks5://login:password@host:port  or  host:port:login:password")
             linkField.setText(currentFor(m))
             self.visibility = if (relay) View.VISIBLE else View.GONE
         }
@@ -943,9 +973,9 @@ class MainActivity : AppCompatActivity() {
         val scroll = ScrollView(this).apply { addView(box) }
 
         val dlg = AlertDialog.Builder(this)
-            .setTitle(if (firstRun) "Подключение" else "Настройки")
+            .setTitle(if (firstRun) tr("Подключение", "Connection") else tr("Настройки", "Settings"))
             .setView(scroll)
-            .setPositiveButton("Сохранить") { _, _ ->
+            .setPositiveButton(tr("Сохранить", "Save")) { _, _ ->
                 val raw = linkField.text.toString()
                 try {
                     if (mode == Prefs.MODE_SOCKS) {
@@ -974,7 +1004,7 @@ class MainActivity : AppCompatActivity() {
                 subheader.text = serverLabel()
                 runChecks()
             }
-            .setNegativeButton("Отмена", null)
+            .setNegativeButton(tr("Отмена", "Cancel"), null)
             .create()
         dlg.show()
     }
