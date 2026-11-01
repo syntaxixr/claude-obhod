@@ -1,0 +1,20 @@
+{
+  "_instructions": "Скопируйте этот файл в config.json на VDS и заполните домен + токен. config.json не коммитить.",
+
+  "listen": "0.0.0.0:443",
+
+  "publicUrl": "https://relay.example.com",
+
+  "tls": {
+    "_comment": "certbot: certonly --standalone -d relay.example.com. Файлы по умолчанию берутся из /etc/letsencrypt/live/<домен>/",
+    "mode": "manual",
+    "domain": "relay.example.com"
+  },
+
+  "auth": {
+    "_comment": "Список токенов доступа. Минимум 16 символов. Сгенерировать: openssl rand -hex 24",
+    "tokens": ["ВСТАВЬТЕ_СВОЙ_ТОКЕН_СЮДА_МИН_16_СИМВОЛОВ"]
+  },
+
+  "dns": ["9.9.9.11", "1.1.1.1"]
+}

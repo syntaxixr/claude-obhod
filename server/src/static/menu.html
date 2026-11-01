@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Claude Обход</title>
+<style>
+  :root{
+    --bg:#0f0e0c; --card:#1b1916; --line:#2a2723; --text:#f2efe9; --dim:#9a948a;
+    --green:#3ddc84; --red:#ff5c5c; --amber:#f0b429; --accent:#d97757;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#1f1c18 0%,var(--bg) 60%);
+    color:var(--text);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    display:flex;align-items:center;justify-content:center;padding:20px;min-height:100dvh}
+  .wrap{width:100%;max-width:460px}
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(140deg,var(--accent),#a64d32);
+    display:grid;place-items:center;font-weight:700;font-size:20px;box-shadow:0 8px 24px #d9775733}
+  .brand h1{font-size:18px;margin:0}
+  .brand p{margin:2px 0 0;color:var(--dim);font-size:13px;font-family:var(--mono)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:16px;overflow:hidden}
+  .row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:0}
+  .dot{width:10px;height:10px;border-radius:50%;background:#4a453e;flex:0 0 auto;transition:.25s}
+  .dot.ok{background:var(--green);box-shadow:0 0 10px #3ddc8488}
+  .dot.bad{background:var(--red);box-shadow:0 0 10px #ff5c5c66}
+  .dot.wait{background:var(--amber);animation:pulse 1.2s infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  .row .name{flex:1;font-size:15px}
+  .row .sub{display:block;color:var(--dim);font-size:12px;font-family:var(--mono);margin-top:1px;word-break:break-all}
+  .row .ms{color:var(--dim);font-size:12px;font-family:var(--mono)}
+  .bar{height:4px;background:#241f1a;border-radius:99px;overflow:hidden;margin:0 2px 16px}
+  .bar i{display:block;height:100%;width:0;background:var(--green);transition:width .5s ease}
+  .enter{width:100%;padding:16px;border:0;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;
+    background:var(--accent);color:#fff;transition:.2s}
+  .enter:disabled{background:#2a2723;color:#6b655c;cursor:not-allowed}
+  .hint{color:var(--dim);font-size:12px;text-align:center;margin:10px 0 0;min-height:18px}
+  .err{color:var(--red);font-size:13px;text-align:center;margin-bottom:10px}
+  .foot{text-align:center;color:#5f5a52;font-size:11px;margin-top:18px;font-family:var(--mono)}
+  input{flex:1;background:#121110;border:1px solid #2a2723;border-radius:10px;padding:12px;
+    color:var(--text);font-size:15px;font-family:var(--mono)}
+  .mini{width:auto;padding:0 16px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <div class="logo">✦</div>
+    <div><h1>Claude Обход</h1><p id="domain">{{DOMAIN}}</p></div>
+  </div>
+
+  <div class="card" id="auth" style="padding:16px" hidden>
+    <div style="margin-bottom:10px;font-size:14px;color:var(--dim)">Введите токен из config.json</div>
+    <div class="err" id="authErr" hidden>Неверный токен</div>
+    <form method="post" action="/menu" style="display:flex;gap:8px">
+      <input name="token" type="password" autocomplete="current-password" placeholder="Bearer token">
+      <button class="enter mini" name="go" value="1">→</button>
+    </form>
+  </div>
+
+  <div class="card" id="rows"></div>
+  <div class="bar"><i id="prog"></i></div>
+  <button class="enter" id="enter" disabled>Проверяю…</button>
+  <p class="hint" id="hint">Все галочки должны стать зелёными — тогда вход откроется.</p>
+  <p class="foot">build {{BUILD}} · трафик идёт через этот VDS</p>
+</div>
+
+<script>
+const ROWS = [
+  ["vds","Сервер VDS"],["tls","HTTPS / сертификат"],["exit","Выходной IP"],
+  ["dns","DNS"],["claude","claude.ai доступен"],["api","Anthropic API"],
+  ["ws","WebSocket / стриминг"],["region","Регион не заблокирован"]
+];
+const TOKEN_KEY = "relay.token";
+let token = localStorage.getItem(TOKEN_KEY) || "";
+const rowsEl = document.getElementById("rows");
+const enter = document.getElementById("enter");
+const hint = document.getElementById("hint");
+const prog = document.getElementById("prog");
+const esc = (s)=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(state){
+  rowsEl.innerHTML = ROWS.map(([id,label])=>{
+    const s = state[id] || {status:"wait"};
+    const d = s.status === "ok" ? "ok" : s.status === "bad" ? "bad" : "wait";
+    return `<div class="row"><span class="dot ${d}"></span>
+      <span class="name">${label}<span class="sub">${s.detail ? esc(s.detail) : "ожидание…"}</span></span>
+      <span class="ms">${s.ms != null ? s.ms + " мс" : ""}</span></div>`;
+  }).join("");
+}
+function setAll(ok, label, detail){
+  const st = {}; ROWS.forEach(([id]) => st[id] = {status: ok ? "ok" : "bad", detail, ms: null});
+  render(st); prog.style.width = ok ? "100%" : "0";
+  enter.disabled = !ok; enter.textContent = ok ? "Войти в Claude →" : label;
+  hint.textContent = ok ? "Всё зелёное — можно входить." : detail;
+}
+async function check(){
+  if (!token){ document.getElementById("auth").hidden = false; setAll(false,"Нужен токен","Введите токен выше"); return; }
+  document.getElementById("auth").hidden = true;
+  enter.disabled = true; enter.textContent = "Проверяю…"; prog.style.width = "15%";
+  try{
+    const r = await fetch("/relay/api/status?fresh=1", { headers:{ Authorization: "Bearer " + token }, cache:"no-store" });
+    if (r.status === 401){ token=""; localStorage.removeItem(TOKEN_KEY); document.getElementById("auth").hidden=false;
+      setAll(false,"Нужен токен","Введите токен выше"); return; }
+    const j = await r.json(); const st = {};
+    for (const c of j.checks) st[c.id] = { status: c.ok ? "ok" : "bad", detail: c.detail, ms: c.ms };
+    render(st);
+    const total = j.checks.length, good = j.checks.filter(c=>c.ok).length;
+    prog.style.width = Math.round(good*100/total) + "%";
+    const bad = j.checks.filter(c=>!c.ok);
+    if (j.ok){ enter.disabled=false; enter.textContent="Войти в Claude →"; hint.textContent="Всё зелёное — можно входить."; }
+    else { enter.disabled=true; enter.textContent="Вход закрыт"; hint.textContent="Красное: " + bad.map(c=>c.id).join(", "); }
+  }catch(e){ setAll(false,"Relay недоступен", e.message); }
+}
+enter.addEventListener("click", ()=>{
+  if (!token){ document.getElementById("auth").hidden=false; return; }
+  const f=document.createElement("form"); f.method="post"; f.action="/menu";
+  const t=document.createElement("input"); t.type="hidden"; t.name="token"; t.value=token;
+  const g=document.createElement("input"); g.type="hidden"; g.name="go"; g.value="1";
+  f.append(t,g); document.body.appendChild(f); f.submit();
+});
+if (new URLSearchParams(location.search).get("error")) document.getElementById("authErr").hidden=false;
+document.getElementById("domain").textContent = location.host || "{{DOMAIN}}";
+render({}); check(); setInterval(check, 60000);
+</script>
+</body>
+</html>

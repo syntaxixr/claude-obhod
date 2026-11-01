@@ -1,0 +1,15 @@
+{
+  "name": "claude-obhod-server",
+  "version": "1.0.0",
+  "description": "Self-hosted HTTPS CONNECT relay for Claude + Android launcher with green-checks gate",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.mjs",
+  "engines": { "node": ">=20.3" },
+  "scripts": {
+    "start": "node src/index.mjs start",
+    "doctor": "node src/index.mjs doctor"
+  },
+  "keywords": ["claude", "relay", "proxy", "vps", "android"],
+  "repository": { "type": "git", "url": "https://github.com/syntaxixr/claude-obhod" }
+}

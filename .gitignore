@@ -1,0 +1,22 @@
+# конфиги с секретами
+server/config.json
+server/logs/
+*.jks
+*.keystore
+key.properties
+local.properties
+
+# сборка
+android/.gradle/
+android/build/
+android/app/build/
+android/app/release/
+*.apk
+*.aab
+
+# ide
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
