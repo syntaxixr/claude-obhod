@@ -1,299 +1,303 @@
-<h1 align="center">Claude Обход</h1>
+<h1 align="center">Claude Obhod</h1>
+
+<p align="center"><b>🇬🇧 English</b> · <a href="README.ru.md">🇷🇺 Русский</a></p>
 
 <p align="center">
-  <b>Claude на Android — через свой сервер.</b><br>
-  Для России, Китая, Северной Кореи и всех, у кого Claude закрыт.<br>
-  <sub>Версия <b>1.0.0</b> — первый публичный релиз</sub>
+  <b>Claude on Android, through your own server.</b><br>
+  For Russia, China, North Korea and everyone else where Claude is blocked.<br>
+  <sub>Version <b>1.0.0</b>, first public release</sub>
 </p>
 
 <p align="center">
-  <a href="https://github.com/syntaxixr/claude-obhod/releases/latest"><img src="https://img.shields.io/github/v/release/syntaxixr/claude-obhod?label=%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%8F&color=D97757&style=flat-square" alt="версия"></a>
-  <a href="https://github.com/syntaxixr/claude-obhod/releases/latest"><img src="https://img.shields.io/github/downloads/syntaxixr/claude-obhod/total?label=%D1%81%D0%BA%D0%B0%D1%87%D0%B8%D0%B2%D0%B0%D0%BD%D0%B8%D0%B9&color=D97757&style=flat-square" alt="скачиваний"></a>
-  <a href="https://github.com/syntaxixr/claude-obhod/stargazers"><img src="https://img.shields.io/github/stars/syntaxixr/claude-obhod?label=%D0%B7%D0%B2%D1%91%D0%B7%D0%B4%D1%8B&color=F5C452&style=flat-square" alt="звёзды"></a>
+  <a href="https://github.com/syntaxixr/claude-obhod/releases/latest"><img src="https://img.shields.io/github/v/release/syntaxixr/claude-obhod?label=version&color=D97757&style=flat-square" alt="version"></a>
+  <a href="https://github.com/syntaxixr/claude-obhod/releases/latest"><img src="https://img.shields.io/github/downloads/syntaxixr/claude-obhod/total?label=downloads&color=D97757&style=flat-square" alt="downloads"></a>
+  <a href="https://github.com/syntaxixr/claude-obhod/stargazers"><img src="https://img.shields.io/github/stars/syntaxixr/claude-obhod?label=stars&color=F5C452&style=flat-square" alt="stars"></a>
   <img src="https://img.shields.io/badge/Android-8%2B-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android 8+">
-  <img src="https://img.shields.io/badge/%D0%BB%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F-MIT-6B655C?style=flat-square" alt="MIT">
+  <img src="https://img.shields.io/badge/license-MIT-6B655C?style=flat-square" alt="MIT">
 </p>
 
 <p align="center">
-  <img src="docs/demo.gif" width="800" alt="Как работает Claude Обход">
+  <img src="docs/demo.gif" width="800" alt="How Claude Obhod works">
 </p>
 
 <p align="center">
-  <a href="https://github.com/syntaxixr/claude-obhod/releases/latest"><b>⬇️ Скачать APK</b></a> ·
-  <a href="docs/demo.mp4">🎬 Ролик в MP4</a> ·
-  <a href="#сервер-на-vds">🖥 Поставить сервер</a> ·
+  <a href="https://github.com/syntaxixr/claude-obhod/releases/latest"><b>⬇️ Download APK</b></a> ·
+  <a href="docs/demo.mp4">🎬 Video (MP4)</a> ·
+  <a href="#server-on-a-vds">🖥 Set up a server</a> ·
   <a href="https://t.me/synaps_ss">✈️ Telegram</a>
 </p>
 
 ---
 
-Android-приложение и маленький сервер, чтобы открывать Claude через свой сервер за границей (VDS) или через SOCKS5-прокси.
+An Android app plus a small server that let you use Claude through your own server abroad (a VDS) or through a SOCKS5 proxy.
 
-Открываешь приложение, оно проверяет связь по пяти пунктам, а когда всё готово — кнопка **«Открыть Claude»**. Claude открывается прямо внутри приложения, и наружу при этом идёт только соединение к твоему серверу: WebRTC, DNS и любые прямые запросы глушатся, поэтому настоящий IP телефона Claude не видит.
+*Obhod* (Обход) is Russian for "workaround". The app's interface is in Russian; this page explains every step in English.
+
+Open the app and it checks your connection on five points. When everything is green you get the **"Open Claude"** button (*«Открыть Claude»*). Claude opens right inside the app, and the only connection that leaves the phone goes to your server: WebRTC, DNS and any direct requests are blocked, so Claude never sees the phone's real IP.
 
 > [!CAUTION]
-> **Не пользуйся официальным приложением Claude — за него банят.**
-> Родное приложение Claude видит телефон целиком: **SIM-карту (страну и оператора), часовой пояс, язык и регион системы**. Прокси и VPN этого не прячут — по этим данным сразу видно, что ты из России (Китая, КНДР…), и аккаунт блокируют.
-> **Не привязывай к аккаунту российский номер телефона** — это то же самое, что написать свою страну.
-> Открывай Claude **только внутри Claude Обход**: там нет доступа к SIM-карте, а наружу идёт только IP твоего сервера.
+> **Don't use the official Claude app. That's what gets accounts banned.**
+> The official Claude app sees the whole phone: **the SIM card (country and carrier), time zone, system language and region**. A proxy or VPN doesn't hide any of that, so it's obvious you're in Russia (China, North Korea…) and the account gets blocked.
+> **Don't link a phone number from a blocked country to your account.** It's the same as writing down your country.
+> Open Claude **only inside Claude Obhod**: it has no access to the SIM card, and the only IP the outside world sees is your server's.
 
-> ⭐ **Если пригодилось — поставь звёздочку.** Так проект найдут те, кому он тоже нужен. Спасибо!
+> ⭐ **If this helped, give it a star.** It helps other people who need it find the project. Thanks!
 
-## Где это актуально
+## Who it's for
 
-Claude официально недоступен в **России, Китае, Северной Корее**, Беларуси, Иране и ещё ряде стран. Если ты оттуда — тебе сюда. Нужен только сервер в стране, где Claude работает (ЕС, США, Британия), или нормальный SOCKS5-прокси.
+Claude isn't officially available in **Russia, China, North Korea**, Belarus, Iran and a number of other countries. If that's where you are, this is for you. All you need is a server in a country where Claude works (EU, US, UK) or a decent SOCKS5 proxy.
 
-## Каждый настраивает под себя
+## Set it up your way
 
-Тут нет общего сервера, через который ходят все. Всё твоё:
+There's no shared server that everybody goes through. Everything is yours:
 
-- **Свой сервер.** Ставишь на свою VDS одной командой — получаешь свою ссылку со своим токеном.
-- **Или свой прокси.** Подойдёт любой SOCKS5 в любом формате.
-- **Своя сборка.** Можно вшить свою ссылку прямо в APK и раздать семье — им ничего не надо вставлять ([как собрать](#сборка-из-исходников)).
-- **Свои токены.** Хочешь пустить друга — дай ему отдельный токен, отключишь в любой момент.
-- **Открытый код.** Форкай, меняй, переводи — MIT.
+- **Your own server.** One command installs it on your VDS, and you get your own link with your own token.
+- **Or your own proxy.** Any SOCKS5, in any common format.
+- **Your own build.** Bake your link right into the APK and hand it to your family, so they don't have to paste anything ([how to build](#building-from-source)).
+- **Your own tokens.** Want to let a friend in? Give them a separate token and switch it off whenever you like.
+- **Open source.** Fork it, change it, translate it. MIT.
 
 <p align="center">
-  <img src="docs/screenshots/1-guide.png" width="200" alt="Инструкция при первом запуске">
-  <img src="docs/screenshots/2-connect-vds.png" width="200" alt="Подключение: своя VDS">
-  <img src="docs/screenshots/3-connect-socks5.png" width="200" alt="Подключение: SOCKS5">
-  <img src="docs/screenshots/4-checks.png" width="200" alt="Проверки пройдены">
+  <img src="docs/screenshots/1-guide.png" width="200" alt="First-run guide">
+  <img src="docs/screenshots/2-connect-vds.png" width="200" alt="Connecting: your own VDS">
+  <img src="docs/screenshots/3-connect-socks5.png" width="200" alt="Connecting: SOCKS5">
+  <img src="docs/screenshots/4-checks.png" width="200" alt="All checks passed">
 </p>
 
 ---
 
-## Что умеет
+## Features
 
-- **Два способа подключения** — своя VDS с сервером из этого репозитория (рекомендуется) или любой SOCKS5-прокси.
-- **5 проверок перед входом** — интернет, сервер, туннель, страна выхода, доступность Claude. Пока что-то не так, войти не даст и напишет, что именно.
-- **Claude внутри приложения** — переписка, файлы, голосовой ввод, скачивание. Всё через сервер.
-- **Вход через Google, Apple и по почте — тоже внутри.** Окно Google открывается поверх Claude через сервер, а ссылка из письма открывается в приложении, а не в браузере телефона.
-- **Защита на уровне сети** — системный VPN только для этого приложения (и официального приложения Claude): всё, кроме соединения к серверу, уничтожается.
-- **Инструкция при первом запуске** — три шага и правила, чтобы не забанили.
-- **Дизайн в стиле Claude** — тёплая тёмная тема, звёздочка, которая «дышит», пока идёт проверка.
+- **Two ways to connect.** Your own VDS running the server from this repo (recommended), or any SOCKS5 proxy.
+- **5 checks before you go in.** Internet, server, tunnel, exit country, Claude availability. If something is wrong, it won't let you in and tells you exactly what.
+- **Claude inside the app.** Chats, files, voice input, downloads, all through your server.
+- **Sign in with Google, Apple or email, also inside the app.** The Google window opens on top of Claude through the server, and the link from the sign-in email opens in the app instead of the phone's browser.
+- **Network-level protection.** A system VPN that covers only this app (and the official Claude app): everything except the connection to your server is dropped.
+- **First-run guide.** Three steps plus the rules for not getting banned.
+- **Claude-style design.** Warm dark theme and a "breathing" Claude star while checks run.
 
-## Что внутри
+## What's inside
 
-| Папка | Что это |
+| Folder | What it is |
 |---|---|
-| `server/` | Сервер для VDS (Node.js). SOCKS5 и HTTPS-прокси на одном порту, всё внутри TLS, вход по токену |
-| `android/` | Приложение |
-| `docs/` | Скриншоты и ролик |
+| `server/` | Server for your VDS (Node.js). SOCKS5 and HTTPS proxy on one port, everything inside TLS, token auth |
+| `android/` | The app |
+| `docs/` | Screenshots and video |
 
 ```
- Телефон                         Твой сервер (ЕС/США/…)           claude.ai
+ Phone                           Your server (EU/US/…)            claude.ai
 ┌──────────────────┐   TLS     ┌──────────────────┐   TCP 443  ┌──────────┐
-│ Claude Обход     │──────────▶│ сервер           │───────────▶│ Anthropic│
-│  Claude внутри   │  SOCKS5 + │  проверка токена │            └──────────┘
-│  127.0.0.1:N     │   токен   │  туннель         │
+│ Claude Obhod     │──────────▶│ server           │───────────▶│ Anthropic│
+│  Claude inside   │  SOCKS5 + │  token check     │            └──────────┘
+│  127.0.0.1:N     │   token   │  tunnel          │
 └──────────────────┘           └──────────────────┘
 ```
 
-TLS до claude.ai сквозной, прямо с телефона. Сервер видит только зашифрованный поток к `claude.ai:443`, переписку не видит.
+TLS to claude.ai is end-to-end, straight from the phone. The server only sees an encrypted stream to `claude.ai:443` and can't read your chats.
 
-## Два способа подключиться
+## Two ways to connect
 
-### А. Своя VDS — рекомендуется
+### A. Your own VDS (recommended)
 
-Нужен VDS в стране, где Claude работает (ЕС, США, Великобритания и т.д.). Соединение телефон → сервер шифруется и снаружи выглядит как обычный HTTPS, поэтому его сложнее заблокировать.
+You need a VDS in a country where Claude works (EU, US, UK, etc.). The phone-to-server connection is encrypted and looks like ordinary HTTPS from the outside, which makes it harder to block.
 
-1. Поставить сервер на VDS (5 минут, ниже).
-2. Скопировать ссылку, которую он напечатает: `socks5://relay:ТОКЕН@адрес:порт`.
-3. В приложении выбрать «Своя VDS» и вставить ссылку.
+1. Install the server on the VDS (5 minutes, see below).
+2. Copy the link it prints: `socks5://relay:TOKEN@address:port`.
+3. In the app pick "Your own VDS" (*«Своя VDS»*) and paste the link.
 
-### Б. Обычный SOCKS5-прокси
+### B. A regular SOCKS5 proxy
 
-Если VDS нет, подойдёт SOCKS5 от любого провайдера. Приложение понимает все частые форматы:
+No VDS? A SOCKS5 proxy from any provider works. The app understands all the common formats:
 
 ```
-socks5://логин:пароль@хост:порт
-логин:пароль@хост:порт
-хост:порт:логин:пароль
-хост:порт
+socks5://login:password@host:port
+login:password@host:port
+host:port:login:password
+host:port
 ```
 
-В приложении выбрать «Обычный SOCKS5-прокси» и вставить адрес.
+In the app pick "Regular SOCKS5 proxy" (*«Обычный SOCKS5-прокси»*) and paste the address.
 
-> Обычный SOCKS5 не шифруется: провайдер интернета видит, к каким сайтам идут соединения, и может такой прокси заблокировать. Бесплатные и общие прокси не подходят — см. «Чтобы не забанили».
+> Plain SOCKS5 isn't encrypted: your ISP can see which sites you connect to and may block the proxy. Free and shared proxies won't do, see "Don't get banned".
 
 ---
 
-## Сервер на VDS
+## Server on a VDS
 
-Нужно: Ubuntu/Debian, root, VDS не в России, Беларуси, Китае, Гонконге, Иране (там Claude закрыт).
+You need Ubuntu/Debian, root, and a VDS that is **not** in Russia, Belarus, China, Hong Kong or Iran (Claude is closed there).
 
 ```bash
 git clone https://github.com/syntaxixr/claude-obhod
 cd claude-obhod/server
 
-sudo bash install.sh 203.0.113.7              # по IP (самоподписанный сертификат)
-sudo bash install.sh 203.0.113.7 9443         # если 443 занят (VPN, сайт) — другой порт
-sudo bash install.sh relay.example.com        # есть домен → Let's Encrypt
+sudo bash install.sh 203.0.113.7              # by IP (self-signed certificate)
+sudo bash install.sh 203.0.113.7 9443         # if 443 is taken (VPN, website), use another port
+sudo bash install.sh relay.example.com        # have a domain → Let's Encrypt
 ```
 
-Скрипт сам ставит Node.js 20 (если его нет или он старее), делает сертификат, создаёт `config.json` со случайным токеном, запускает службу `claude-relay` и **печатает ссылку для приложения**.
+The script installs Node.js 20 (if it's missing or older), creates a certificate, writes `config.json` with a random token, starts the `claude-relay` service and **prints the link for the app**.
 
 ```bash
 cd /opt/claude-relay
-node src/index.mjs link      # показать ссылку ещё раз
-node src/index.mjs doctor    # самопроверка: 8 пунктов, должно быть «ВСЁ ЗЕЛЁНОЕ»
-journalctl -u claude-relay -n 50 --no-pager   # логи
+node src/index.mjs link      # show the link again
+node src/index.mjs doctor    # self-check: 8 items, should end with «ВСЁ ЗЕЛЁНОЕ» (all green)
+journalctl -u claude-relay -n 50 --no-pager   # logs
 ```
 
-Не забудь открыть порт в фаерволе: `ufw allow 9443/tcp` (и в панели хостера, если там свой фаервол).
+Don't forget to open the port in the firewall: `ufw allow 9443/tcp` (and in your hosting panel, if it has its own firewall).
 
 <details>
-<summary>Если на VDS уже что-то крутится (VPN, сайт)</summary>
+<summary>Something already runs on the VDS (VPN, website)</summary>
 
-Ставь по IP и на свободный порт: `install.sh IP 9443`. Для установки по домену certbot нужен порт 80, поэтому скрипт останавливает nginx/apache/caddy — на сервере, где они нужны, ставь по IP.
+Install by IP on a free port: `install.sh IP 9443`. Installing by domain needs port 80 for certbot, so the script stops nginx/apache/caddy. On a server that needs them, install by IP.
 
-Проверить, что порт свободен: `ss -ltnp | grep ':9443 '` — должно быть пусто.
+Check that the port is free: `ss -ltnp | grep ':9443 '` should print nothing.
 </details>
 
 <details>
-<summary>Обновление сервера</summary>
+<summary>Updating the server</summary>
 
 ```bash
 cd claude-obhod && git pull
 sudo cp -r server/src /opt/claude-relay/ && sudo systemctl restart claude-relay
 ```
 
-`config.json` и токены не меняются. Старые версии приложения продолжают работать.
+`config.json` and tokens stay the same. Older app versions keep working.
 </details>
 
 <details>
-<summary>Несколько людей на одном сервере</summary>
+<summary>Several people on one server</summary>
 
-`auth.tokens` в `/opt/claude-relay/config.json` — это список. Дай каждому свой токен (`openssl rand -hex 24`), тогда отключить можно одного человека, не трогая остальных. После правки — `systemctl restart claude-relay`, ссылки — `node src/index.mjs link`.
+`auth.tokens` in `/opt/claude-relay/config.json` is a list. Give everyone their own token (`openssl rand -hex 24`) so you can cut off one person without touching the rest. After editing run `systemctl restart claude-relay`; links: `node src/index.mjs link`.
 
-Но помни правило «один сервер — один человек» ниже: все, кто ходит через один IP, для Claude выглядят связанными.
+But remember the "one server, one person" rule below: to Claude, everyone coming from the same IP looks connected.
 </details>
 
 ---
 
-## Приложение
+## The app
 
-Скачай APK из [Releases](https://github.com/syntaxixr/claude-obhod/releases/latest) → открой на телефоне → «Установить» (разреши установку из неизвестных источников). Нужен Android 8 или новее.
+Download the APK from [Releases](https://github.com/syntaxixr/claude-obhod/releases/latest), open it on the phone and tap "Install" (allow installing from unknown sources). Android 8 or newer.
 
-**Первый запуск:**
-1. Инструкция «Как пользоваться» — пролистать и нажать «Понятно, поехали».
-2. Выбрать «Своя VDS» или «Обычный SOCKS5», вставить ссылку (есть кнопка «Вставить из буфера»).
-3. Если сервер ставили по IP — включить «Разрешить самоподписанный сертификат».
-4. Дождаться пяти галочек → **«Открыть Claude»**.
-5. Android один раз спросит про уведомления и VPN — разрешить. Это «защита», о ней ниже.
+**First run:**
+1. The "How to use" guide (*«Как пользоваться»*): scroll through and tap *«Понятно, поехали»* ("Got it, let's go").
+2. Pick "Your own VDS" or "Regular SOCKS5" and paste the link (there's a "Paste from clipboard" button, *«Вставить из буфера»*).
+3. If the server was installed by IP, turn on "Allow self-signed certificate" (*«Разрешить самоподписанный сертификат»*).
+4. Wait for five checkmarks, then tap **"Open Claude"** (*«Открыть Claude»*).
+5. Android will ask once about notifications and VPN. Allow both. That's the protection described below.
 
-| Проверка | Что проверяет |
+| Check | What it checks |
 |---|---|
-| Интернет на телефоне | есть ли сеть |
-| Сервер (VDS или прокси) | сервер отвечает и принимает токен / логин |
-| Туннель | соединение через сервер работает |
-| Выход в интернет | страна, которую видит интернет (не РФ/BY/CN/…) |
-| Claude доступен | claude.ai и API открываются, нет блока по региону |
+| Internet on the phone (*Интернет на телефоне*) | whether there's a network |
+| Server (*Сервер*) | the server answers and accepts the token / login |
+| Tunnel (*Туннель*) | the connection through the server works |
+| Internet exit (*Выход в интернет*) | the country the internet sees (not RU/BY/CN/…) |
+| Claude available (*Claude доступен*) | claude.ai and the API open, no region block |
 
-### Вход в аккаунт
+### Signing in
 
-- **Google / Apple** — окно входа открывается внутри приложения, поверх Claude, тоже через сервер.
-- **По почте** — Claude присылает письмо со ссылкой. На Android 12+ один раз нужно разрешить приложению открывать ссылки claude.ai: при первом входе приложение само покажет окно «Вход по почте» → «Настроить» → «Добавить ссылку» → отметить **claude.ai**. После этого кнопка из письма открывает Claude в приложении, а не в браузере.
-  Без настройки тоже можно: в письме долго нажать на кнопку входа → «Копировать ссылку» и вернуться в приложение — ссылка откроется сама.
+- **Google / Apple:** the sign-in window opens inside the app, on top of Claude, also through the server.
+- **Email:** Claude sends you an email with a link. On Android 12+ you need to allow the app to open claude.ai links once: on your first sign-in the app shows a "Sign in by email" dialog → "Set up" → "Add link" → tick **claude.ai**. After that the button in the email opens Claude in the app, not in the browser.
+  Works without the setup too: long-press the sign-in button in the email → "Copy link", then go back to the app and it opens the link by itself.
 
-### Защита: наружу только сервер
+### Protection: only the server goes out
 
-Кнопка «Открыть Claude» сначала включает **защиту** — системный VPN, который накрывает только Claude Обход и официальное приложение Claude. В туннель уходит весь их трафик, кроме соединения к твоему серверу, и там уничтожается. Остальные приложения телефона её не видят.
+The "Open Claude" button first turns on **protection**, a system VPN that covers only Claude Obhod and the official Claude app. All their traffic except the connection to your server goes into the tunnel and is dropped there. Other apps on the phone aren't affected.
 
-Что проверено на эмуляторе с записью всего трафика телефона:
+Tested on an emulator while recording all of the phone's traffic:
 
-| Проверка | Без защиты | С защитой |
+| Check | Without protection | With protection |
 |---|---|---|
-| WebRTC-утечка (browserleaks.com/webrtc) | виден настоящий IP | только IP сервера, «No Leak» |
-| DNS-запросы к доменам Anthropic у провайдера | были | ноль |
-| Соединения к Claude и к странице входа Google мимо сервера | — | ноль |
-| Вход в claude.ai | работает | работает, Cloudflare пропускает |
+| WebRTC leak (browserleaks.com/webrtc) | real IP visible | only the server's IP, "No Leak" |
+| DNS queries for Anthropic domains at the ISP | yes | none |
+| Connections to Claude and Google sign-in bypassing the server | — | none |
+| Signing in to claude.ai | works | works, Cloudflare lets you through |
 
-Внутри страницы ещё один слой: WebRTC вырезан до загрузки, у WebView нет запасного «напрямую», любые ссылки открываются внутри (через сервер), скачивание файлов идёт через сервер, геолокация запрещена, язык для сайтов — `ru-LV`.
+Inside the page there's one more layer: WebRTC is stripped before the page loads, the WebView has no "direct" fallback, every link opens inside (through the server), downloads go through the server, geolocation is denied, and the language sent to sites is `ru-LV`.
 
-**Чего приложение не прячет.** Часовой пояс телефона сайт видит как есть: подмену пробовали, но Cloudflare её ловит и не пускает в Claude. Самый незаметный вариант — Claude внутри Claude Обход.
+**What the app doesn't hide.** Sites see the phone's time zone as it is: spoofing it was tried, but Cloudflare catches it and won't let you into Claude. The least noticeable option is Claude inside Claude Obhod.
 
 > [!CAUTION]
-> **Родное приложение Claude** (ссылка «Открыть в приложении Claude») ходит под той же защитой, но само читает **SIM-карту (страну и оператора), часовой пояс, язык и регион телефона**. Именно из-за этого прилетают баны — IP сервера тут не спасает. Перед открытием приложение предупреждает об этом диалогом. Лучше вообще не ставить официальное приложение на этот телефон.
+> **The official Claude app** (the "Open in Claude app" link) runs under the same protection, but it reads **the SIM card (country and carrier), time zone, language and region of the phone** on its own. That's exactly what bans come from, and the server's IP doesn't help here. The app shows a warning dialog before opening it. Better not to install the official app on this phone at all.
 
-**Ограничение Android:** одновременно работает только один VPN. Если включён другой VPN-клиент, на время защиты он отключится.
-
----
-
-## Чтобы не забанили
-
-Эти правила приложение показывает при первом запуске (и по кнопке «Инструкция»).
-
-- ✓ **Всегда один сервер.** Один аккаунт — один IP, без прыжков между VPN и прокси.
-- ✓ **Сервер в стране, где есть Claude** — ЕС, США, Британия. Если галочка «Выход в интернет» красная — сервер не подходит.
-- ✕ **Не заходи в этот аккаунт без приложения** — ни с телефона, ни с компьютера напрямую.
-- ✕ **Не пользуйся официальным приложением Claude.** Оно видит SIM-карту, часовой пояс и язык телефона — по ним и банят. Только Claude внутри Claude Обход.
-- ✕ **Не привязывай российский номер** к аккаунту.
-- ✕ **Не раздавай свою ссылку** и не бери бесплатные прокси: всё, что делают другие через твой IP, связывается с твоим аккаунтом. Ссылка с токеном — это доступ к твоему серверу.
+**Android limitation:** only one VPN can run at a time. If another VPN client is on, it gets switched off while protection is running.
 
 ---
 
-## Сборка из исходников
+## Don't get banned
 
-Нужны Android SDK и JDK 17–21 (или Android Studio).
+The app shows these rules on first run (and under the "Guide" button, *«Инструкция»*).
+
+- ✓ **Always the same server.** One account, one IP. No hopping between VPNs and proxies.
+- ✓ **A server in a country where Claude works:** EU, US, UK. If the "Internet exit" check is red, the server won't do.
+- ✕ **Don't use this account outside the app**, neither on the phone nor on a computer directly.
+- ✕ **Don't use the official Claude app.** It sees the SIM card, time zone and phone language, and that's what gets you banned. Only Claude inside Claude Obhod.
+- ✕ **Don't link a phone number from a blocked country** to the account.
+- ✕ **Don't share your link** and don't use free proxies: whatever other people do through your IP gets tied to your account. The link with the token is access to your server.
+
+---
+
+## Building from source
+
+You need the Android SDK and JDK 17–21 (or Android Studio).
 
 ```bash
 cd android
 ./gradlew assembleRelease
 
-# личная сборка: ссылка вшита, человек ничего не вставляет
-./gradlew assembleRelease -PrelayLink="socks5://relay:ТОКЕН@203.0.113.7:9443" -PrelaySelfSigned=true
+# personal build: the link is baked in, nobody has to paste anything
+./gradlew assembleRelease -PrelayLink="socks5://relay:TOKEN@203.0.113.7:9443" -PrelaySelfSigned=true
 ```
 
-Для личной сборки токен можно задать заранее и на сервере: `RELAY_TOKEN=ТОКЕН bash install.sh 203.0.113.7 9443`.
+For a personal build you can also set the token on the server in advance: `RELAY_TOKEN=TOKEN bash install.sh 203.0.113.7 9443`.
 
-Ключ подписи (`android/app/relay-release.jks`) в git не попадает. Без него соберётся неподписанный APK; свой ключ:
+The signing key (`android/app/relay-release.jks`) is not in git. Without it you get an unsigned APK. To make your own key:
 
 ```bash
 keytool -genkeypair -v -keystore app/relay-release.jks -alias relay -keyalg RSA -keysize 4096 -validity 10000
 ```
 
-Пароль ключа — из переменной `RELAY_KEYSTORE_PASS` или строки `relayKeystorePass=…` в `~/.gradle/gradle.properties` (в репозиторий не попадает).
+The key password comes from the `RELAY_KEYSTORE_PASS` environment variable or a `relayKeystorePass=…` line in `~/.gradle/gradle.properties` (never committed).
 
 ---
 
-## Если что-то красное
+## If something is red
 
-| Что красное | Что проверить |
+| What's red | What to check |
 |---|---|
-| Сервер: «не сервер Claude Обход (HTTP …)» | на этом порту другая программа (часто VPN) или сервер не установлен |
-| Сервер: «отказал в соединении» / таймаут | сервер не запущен, порт закрыт фаерволом |
-| Сервер: «ответил не по SOCKS5» | на VDS старая версия — обнови сервер |
-| Сервер: ошибка сертификата | ставили по IP — включи «самоподписанный сертификат» |
-| Сервер: «не принял токен / логин» | ссылка скопирована не целиком; `node src/index.mjs link` на VDS |
-| Туннель | у сервера нет интернета: `curl -s https://api.country.is` на VDS |
-| Выход в интернет / Claude | сервер в неподдерживаемой стране — нужен другой |
-| Cloudflare «Подтвердите, что вы человек» | поставь галочку, это нормально |
-| Ссылка из письма открылась в браузере | не разрешены ссылки claude.ai — см. «Вход в аккаунт» |
+| Server: "not a Claude Obhod server (HTTP …)" | another program is on that port (often a VPN), or the server isn't installed |
+| Server: "connection refused" / timeout | the server isn't running, or the firewall blocks the port |
+| Server: "didn't answer as SOCKS5" | old version on the VDS, update the server |
+| Server: certificate error | installed by IP, turn on "self-signed certificate" |
+| Server: "token / login rejected" | the link was copied incompletely; run `node src/index.mjs link` on the VDS |
+| Tunnel | the server has no internet: `curl -s https://api.country.is` on the VDS |
+| Internet exit / Claude | the server is in an unsupported country, you need another one |
+| Cloudflare "Verify you are human" | tick the box, that's normal |
+| The email link opened in the browser | claude.ai links aren't allowed for the app, see "Signing in" |
 
 ---
 
-## Честно о рисках
+## Honestly about the risks
 
-Anthropic предоставляет Claude не во всех странах. Пользоваться им из неподдерживаемой страны через VPN или прокси — нарушение их правил, и аккаунт могут заблокировать. Приложение прячет IP, но не делает такое использование разрешённым: решение и ответственность — твои.
+Anthropic doesn't offer Claude in every country. Using it from an unsupported country through a VPN or proxy breaks their terms, and the account can be blocked. The app hides your IP but doesn't make that kind of use allowed: the decision and the responsibility are yours.
 
-Проект не связан с Anthropic, не изменяет официальное приложение Claude и не даёт доступ к Claude без аккаунта и подписки.
+This project isn't affiliated with Anthropic, doesn't modify the official Claude app and doesn't give access to Claude without an account and subscription.
 
-## Автор
+## Author
 
 - Telegram: [@synaps_ss](https://t.me/synaps_ss)
 - GitHub: [syntaxixr](https://github.com/syntaxixr)
 
-Вопросы и баги — в [Issues](https://github.com/syntaxixr/claude-obhod/issues) или в Telegram. Пул-реквесты тоже welcome.
+Questions and bugs go to [Issues](https://github.com/syntaxixr/claude-obhod/issues) or Telegram. Pull requests welcome, including translations of the app.
 
-## Лицензия
+## License
 
-MIT — см. [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
 
 ---
 
 <p align="center">
-  <b>⭐ Поддержи звёздочкой — это лучшее спасибо.</b><br>
-  Спасибо всем, кто пользуется, пишет баги и делится с друзьями.<br><br>
-  <b>Удачного пользования! 🧡</b>
+  <b>⭐ Star the repo. It's the best way to say thanks.</b><br>
+  Thanks to everyone who uses it, reports bugs and shares it with friends.<br><br>
+  <b>Enjoy! 🧡</b>
 </p>
