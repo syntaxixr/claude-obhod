@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/demo.gif" width="800" alt="How Claude Obhod works">
+  <img src="docs/demo.gif" width="800" alt="How Claude Obhod works: Android and Claude Code on PC">
 </p>
 
 <p align="center">

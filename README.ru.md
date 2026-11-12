@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/demo.gif" width="800" alt="Как работает Claude Обход">
+  <img src="docs/demo.gif" width="800" alt="Как работает Claude Обход: Android и Claude Code на ПК">
 </p>
 
 <p align="center">
