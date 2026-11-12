@@ -1,0 +1,12 @@
+{
+  "name": "claude-obhod-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Claude Code (CLI) через свой сервер: Windows-запускатель Claude Обход",
+  "license": "MIT",
+  "repository": "https://github.com/syntaxixr/claude-obhod",
+  "scripts": {
+    "build": "bun build.mjs",
+    "check": "node claude-obhod.js --check"
+  }
+}

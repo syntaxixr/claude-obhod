@@ -3,7 +3,7 @@
 <p align="center"><b>🇬🇧 English</b> · <a href="README.ru.md">🇷🇺 Русский</a></p>
 
 <p align="center">
-  <b>Claude on Android, through your own server.</b><br>
+  <b>Claude on Android and Claude Code on your PC, through your own server.</b><br>
   For Russia, China, North Korea and everyone else where Claude is blocked.<br>
   <sub>Version <b>1.0.0</b>, first public release</sub>
 </p>
@@ -22,6 +22,7 @@
 
 <p align="center">
   <a href="https://github.com/syntaxixr/claude-obhod/releases/latest"><b>⬇️ Download APK</b></a> ·
+  <a href="#desktop-claude-code-through-the-server"><b>💻 Claude Code on PC</b></a> ·
   <a href="docs/demo.mp4">🎬 Video (MP4)</a> ·
   <a href="#server-on-a-vds">🖥 Set up a server</a> ·
   <a href="https://t.me/synaps_ss">✈️ Telegram</a>
@@ -82,6 +83,7 @@ There's no shared server that everybody goes through. Everything is yours:
 |---|---|
 | `server/` | Server for your VDS (Node.js). SOCKS5 and HTTPS proxy on one port, everything inside TLS, token auth |
 | `android/` | The app |
+| `desktop/` | The desktop program: Claude Code through the server (`ClaudeObhod.exe`) |
 | `docs/` | Screenshots and video |
 
 ```
@@ -221,6 +223,39 @@ Inside the page there's one more layer: WebRTC is stripped before the page loads
 > **The official Claude app** (the "Open in Claude app" link) runs under the same protection, but it reads **the SIM card (country and carrier), time zone, language and region of the phone** on its own. That's exactly what bans come from, and the server's IP doesn't help here. The app shows a warning dialog before opening it. Better not to install the official app on this phone at all.
 
 **Android limitation:** only one VPN can run at a time. If another VPN client is on, it gets switched off while protection is running.
+
+---
+
+## Desktop: Claude Code through the server
+
+<p align="center">
+  <img src="docs/screenshots/5-desktop-cli.png" width="760" alt="Claude Obhod for desktop">
+</p>
+
+The same thing for **Claude Code** (the CLI) on Windows. Download `ClaudeObhod.exe`, run it, and a **"Claude Обход"** shortcut with the Claude star appears on your desktop. Double-click it: the program checks the connection on five points and opens Claude Code right away. **All of its traffic goes only through your server.**
+
+1. Download **`ClaudeObhod.exe`** from [Releases](https://github.com/syntaxixr/claude-obhod/releases/latest) and run it. Windows may ask "Run anyway?": the file isn't code-signed, the source is in `desktop/`.
+2. Paste the same link as on the phone: `socks5://relay:TOKEN@address:port`. A regular SOCKS5 works too, and so does `ssh://user@host` if you have SSH access to the server.
+3. Five checkmarks, then Claude Code starts. No Claude Code yet? The program offers to install it through the server.
+
+What's inside:
+
+- **A local proxy.** The program runs a proxy on `127.0.0.1` and starts Claude Code with `HTTPS_PROXY` pointing at it. It connects to the server the same way the app does: TLS with SOCKS5 and a token inside. If the server goes down you get an error, never a direct connection.
+- **Sign-in through the server too.** Claude Code opens the sign-in link not in your regular browser but in a separate Edge or Chrome window that goes only through the server, with its own profile and WebRTC outside the proxy turned off.
+- **A nice window.** Windows Terminal gets its own profile: Claude's warm dark theme, a terracotta tab and the icon.
+- **Server by IP.** The self-signed certificate is remembered on first connect (like SSH), so a swapped server gets noticed.
+
+| Command | What it does |
+|---|---|
+| `ClaudeObhod.exe` | checks, then Claude Code through the server (arguments go to `claude`, e.g. `-c`) |
+| `--setup` | change the link |
+| `--browser` | open claude.ai in a browser through the server |
+| `--shell` | PowerShell where `claude`, `npm`, `git`, `curl` go through the server |
+| `--proxy` | keep a proxy running for other programs |
+| `--check` | only check the connection |
+| `--install` / `--uninstall` | add / remove the shortcut and Terminal profile |
+
+Settings live in `%APPDATA%\ClaudeObhod`, the program in `%LOCALAPPDATA%\ClaudeObhod`. To build it yourself: `cd desktop && bun build.mjs` (needs [Bun](https://bun.sh)). A personal build with the link baked in: `bun build.mjs --link "socks5://relay:TOKEN@1.2.3.4:9443"`.
 
 ---
 

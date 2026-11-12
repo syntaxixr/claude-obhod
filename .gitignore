@@ -20,3 +20,8 @@ android/app/release/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# компьютер
+desktop/dist/
+desktop/assets.js
+*.exe
