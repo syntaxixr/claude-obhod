@@ -34,6 +34,12 @@ const HOME = os.homedir();
 const DATA_DIR = path.join(process.env.APPDATA || path.join(HOME, ".config"), "ClaudeObhod");
 const CONFIG = path.join(DATA_DIR, "config.json");
 const LOG = path.join(DATA_DIR, "proxy.log");
+// переменные прокси для окна cmd: --prepare пишет, cmd вызывает через call
+const SESSION = path.join(DATA_DIR, "session.cmd");
+const CMD_EXE = path.join(process.env.SystemRoot || "C:\Windows", "System32", "cmd.exe");
+// Окно — это настоящая cmd. Внутри неё: проверки, потом переменные прокси прямо в эту cmd.
+// Не прошли проверки или человек вышел — окно закрывается, напрямую в нём ничего не пойдёт.
+const cmdArgs = (exe) => `/s /k ""${exe}" --prepare && call "${SESSION}" || exit"`;
 const INSTALL_DIR = path.join(process.env.LOCALAPPDATA || DATA_DIR, "ClaudeObhod");
 const EXE_NAME = "ClaudeObhod.exe";
 const PROFILE_NAME = "Claude Обход";
@@ -596,7 +602,7 @@ function wtProfile(exe, icon) {
   return {
     guid: WT_GUID,
     name: PROFILE_NAME,
-    commandline: `"${exe}"`,
+    commandline: `"${CMD_EXE}" ${cmdArgs(exe)}`,
     icon,
     colorScheme: WT_SCHEME.name,
     tabColor: "#C96442",
@@ -685,8 +691,8 @@ function install(quiet) {
     }
   }
 
-  const lnkTarget = wt || exe;
-  const lnkArgs = wt ? `--size 128,38 -p "${wtDone ? WT_GUID : PROFILE_NAME}"` : "";
+  const lnkTarget = wt || CMD_EXE;
+  const lnkArgs = wt ? `--size 128,38 -p "${wtDone ? WT_GUID : PROFILE_NAME}"` : cmdArgs(exe);
   const icon = fs.existsSync(icoPath) ? icoPath : exe;
   const r = psRun(`
 $ErrorActionPreference = 'Stop'
@@ -755,6 +761,130 @@ function waitKey(msg) {
   });
 }
 
+function printShellHints() {
+  const cl = findClaude();
+  out("  " + C.ok + C.bold + tr("Всё готово.", "All set.") + C.reset + " " + C.text + tr("Это обычная командная строка — только всё в ней идёт через сервер.", "This is a regular command prompt — except everything in it goes through the server.") + C.reset);
+  out("  " + C.dim + tr("Пиши команды как в cmd. ", "Type commands as in cmd. ") + C.accent + "claude" + C.reset + C.dim + tr(" — запустить Claude Code, ", " — start Claude Code, ") + C.accent + "exit" + C.reset + C.dim + tr(" — выйти.", " — quit.") + C.reset);
+  if (!cl) out("  " + C.warn + tr("Claude Code ещё не установлен: ", "Claude Code isn't installed yet: ") + C.reset + C.text + "npm install -g @anthropic-ai/claude-code" + C.reset);
+  out("  " + C.faint + tr("Не пользуйся официальным приложением Claude и не заходи в аккаунт напрямую — за это банят.", "Don't use the official Claude app or sign in directly — that's what gets accounts banned.") + C.reset);
+  out("");
+}
+
+// путь для .cmd-файла: через %LOCALAPPDATA% и т.п., чтобы кириллица в имени пользователя не сломалась
+function batchPath(p) {
+  for (const v of ["LOCALAPPDATA", "APPDATA", "USERPROFILE"]) {
+    const base = process.env[v];
+    if (base && p.toLowerCase().startsWith(base.toLowerCase() + "\\")) p = `%${v}%` + p.slice(base.length);
+  }
+  return /^[\x20-\x7e]*$/.test(p) ? p : null;
+}
+
+// session.cmd: переменные прокси для окна-cmd (вызывается через call из самой cmd)
+function writeSession(env, port) {
+  const L = ["@echo off"];
+  for (const k of ["HTTPS_PROXY", "HTTP_PROXY", "https_proxy", "http_proxy", "NO_PROXY", "no_proxy", "NODE_USE_ENV_PROXY", "CLAUDE_OBHOD_PORT", "CLAUDE_OBHOD"]) {
+    L.push(`set "${k}=${env[k]}"`);
+  }
+  const self = batchPath(path.join(INSTALL_DIR, EXE_NAME));
+  if (self && fs.existsSync(path.join(INSTALL_DIR, EXE_NAME))) L.push(`set "BROWSER=${self}"`);
+  const cl = findClaude();
+  if (cl && !cl.shell) { const d = batchPath(path.dirname(cl.exe)); if (d) L.push(`set "PATH=${d};%PATH%"`); }
+  L.push('set "PROMPT=$E[38;2;217;119;87m[Claude Obhod]$E[0m $P$G"');
+  L.push(`title Claude Obhod - 127.0.0.1:${port}`);
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(SESSION, L.join("\r\n") + "\r\n", "latin1");
+}
+
+// фоновый прокси для окна-cmd: живёт, пока жива эта cmd
+const portFile = (ppid) => path.join(DATA_DIR, `serve-${ppid}.port`);
+
+async function serve(ppid) {
+  try { LINK = parseLink(CFG.link); } catch (e) { log("serve: " + e.message); process.exit(1); }
+  const server = await startProxy();
+  const pf = portFile(ppid);
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(pf, String(server.address().port));
+  log(`serve: окно ${ppid}, прокси 127.0.0.1:${server.address().port}`);
+  const alive = watchProcess(ppid);
+  setInterval(() => {
+    if (ppid && !alive()) {
+      log(`serve: окно ${ppid} закрыто, выключаюсь`);
+      safe(() => fs.unlinkSync(pf));
+      shutdown(0, server);
+    }
+  }, 2000);
+}
+
+// Жив ли процесс окна. На Windows — по дескриптору процесса (надёжно, без путаницы с переиспользованным PID).
+function watchProcess(pid) {
+  if (IS_WIN) {
+    const viaFfi = safe(() => {
+      const { dlopen, FFIType } = require("bun:ffi");
+      const k = dlopen("kernel32.dll", {
+        OpenProcess: { args: [FFIType.u32, FFIType.i32, FFIType.u32], returns: FFIType.ptr },
+        WaitForSingleObject: { args: [FFIType.ptr, FFIType.u32], returns: FFIType.u32 },
+      });
+      const h = k.symbols.OpenProcess(0x00100000 /* SYNCHRONIZE */, 0, pid);
+      if (!h) return () => false; // процесса уже нет
+      return () => k.symbols.WaitForSingleObject(h, 0) === 0x102; // WAIT_TIMEOUT — ещё жив
+    }, null);
+    if (viaFfi) return viaFfi;
+    return () => {
+      const r = spawnSync("tasklist.exe", ["/FI", `PID eq ${pid}`, "/NH", "/FO", "CSV"], { encoding: "utf8", windowsHide: true });
+      return (r.stdout || "").includes(`"${pid}"`);
+    };
+  }
+  return () => { try { process.kill(pid, 0); return true; } catch { return false; } };
+}
+
+async function startServe(ppid) {
+  const pf = portFile(ppid);
+  safe(() => fs.unlinkSync(pf));
+  const isExe = /ClaudeObhod.*\.exe$/i.test(process.execPath);
+  const args = isExe ? ["--serve", String(ppid)] : [process.argv[1], "--serve", String(ppid)];
+  const p = spawn(process.execPath, args, { detached: true, stdio: "ignore", windowsHide: true });
+  p.unref();
+  for (let i = 0; i < 50; i++) {
+    await new Promise((r) => setTimeout(r, 200));
+    const port = Number(safe(() => fs.readFileSync(pf, "utf8"), "0"));
+    if (port) {
+      const ok = await tcp("127.0.0.1", port).then((s) => { s.destroy(); return true; }, () => false);
+      if (ok) return port;
+    }
+  }
+  return 0;
+}
+
+// открыть окно «Claude Обход»: Windows Terminal с нашим профилем, иначе ярлык (cmd)
+function openWindow() {
+  const wt = wtExe();
+  if (wt) {
+    spawn(wt, ["-w", "new", "--size", "128,38", "-p", PROFILE_NAME], { detached: true, stdio: "ignore" }).unref();
+    return;
+  }
+  const lnk = path.join(process.env.APPDATA || "", "Microsoft", "Windows", "Start Menu", "Programs", PROFILE_NAME + ".lnk");
+  spawn("explorer.exe", [lnk], { detached: true, stdio: "ignore" }).unref();
+}
+
+// Командная строка через сервер (не Windows или запуск из исходников): оболочка — дочерний процесс.
+function runShell(env, server) {
+  const cl = findClaude();
+  const pk = Object.keys(env).find((k) => k.toUpperCase() === "PATH") || "PATH";
+  if (cl && !cl.shell) env[pk] = path.dirname(cl.exe) + path.delimiter + (env[pk] || "");
+  if (IS_WIN) env.PROMPT = "$E[38;2;217;119;87m[Claude Obhod]$E[0m $P$G";
+  printShellHints();
+  // консоль целиком отдаём cmd: мы ничего не читаем, а Ctrl+C достаётся ей, а не нам
+  safe(() => process.stdin.setRawMode && process.stdin.setRawMode(false));
+  safe(() => process.stdin.pause());
+  process.on("SIGINT", () => {});
+  if (IS_WIN) process.on("SIGBREAK", () => {});
+  const sh = IS_WIN
+    ? spawn(process.env.ComSpec || "cmd.exe", ["/k"], { stdio: "inherit", env, cwd: HOME, windowsHide: false })
+    : spawn(process.env.SHELL || "bash", ["-i"], { stdio: "inherit", env, cwd: HOME });
+  sh.on("error", (e) => { out(C.err + e.message + C.reset); shutdown(1, server); });
+  sh.on("exit", (c) => shutdown(c ?? 0, server));
+}
+
 function shutdown(code, server) {
   safe(() => server && server.close());
   safe(() => sshProc && sshProc.kill());
@@ -780,11 +910,10 @@ async function main() {
   if (argv[0] === "--lang" && /^(ru|en)$/.test(argv[1] || "")) { CFG.lang = argv[1]; saveConfig(CFG); EN = argv[1] === "en"; out("ok"); return; }
   if (argv[0] === "--help" || argv[0] === "-h") {
     banner();
-    out("  ClaudeObhod.exe                 " + tr("проверки и Claude Code через сервер", "checks, then Claude Code through the server"));
-    out("  ClaudeObhod.exe <аргументы>     " + tr("аргументы уходят в claude (например -c)", "arguments go to claude (e.g. -c)"));
+    out("  ClaudeObhod.exe                 " + tr("проверки, потом командная строка через сервер", "checks, then a command prompt through the server"));
+    out("  ClaudeObhod.exe --claude [арг.] " + tr("проверки и сразу Claude Code (например --claude -c)", "checks, then straight into Claude Code (e.g. --claude -c)"));
     out("  ClaudeObhod.exe --setup         " + tr("сменить ссылку", "change the link"));
     out("  ClaudeObhod.exe --browser       " + tr("браузер через сервер (claude.ai, вход)", "browser through the server (claude.ai, sign-in)"));
-    out("  ClaudeObhod.exe --shell         " + tr("терминал, где всё идёт через сервер", "a terminal where everything goes through the server"));
     out("  ClaudeObhod.exe --check         " + tr("только проверить связь", "only check the connection"));
     out("  ClaudeObhod.exe --proxy         " + tr("держать прокси для других программ", "keep a proxy running for other programs"));
     out("  ClaudeObhod.exe --install       " + tr("ярлык на рабочем столе и профиль Terminal", "desktop shortcut and Terminal profile"));
@@ -794,17 +923,25 @@ async function main() {
   }
   if (argv[0] === "--uninstall") { banner(); uninstall(); return; }
   if (argv[0] === "--install") { banner(); install(false); await waitKey(tr("Готово. Нажми любую клавишу…", "Done. Press any key…")); return; }
+  if (argv[0] === "--serve") return serve(Number(argv[1]));
+
+  const isExe = IS_WIN && /ClaudeObhod.*\.exe$/i.test(process.execPath);
+
+  // Двойной клик по ClaudeObhod.exe: ставим себя (первый раз) и открываем окно-cmd.
+  if (isExe && (argv.length === 0 || argv[0] === "--shell")) {
+    banner();
+    if (!CFG.installed || !fs.existsSync(path.join(INSTALL_DIR, EXE_NAME))) {
+      install(false);
+      CFG.installed = true;
+      saveConfig(CFG);
+    }
+    openWindow();
+    out("  " + C.dim + tr("Открываю окно «Claude Обход»…", "Opening the \"Claude Обход\" window…") + C.reset);
+    await new Promise((r) => setTimeout(r, 1500));
+    return;
+  }
 
   banner();
-
-  // первый запуск .exe из «Загрузок» — ставим себя и делаем ярлык
-  const service = /^--(check|proxy|browser|shell)$/.test(argv[0] || "");
-  if (IS_WIN && !service && /ClaudeObhod.*\.exe$/i.test(process.execPath) && !CFG.installed) {
-    install(false);
-    CFG.installed = true;
-    saveConfig(CFG);
-    out("");
-  }
 
   const forceSetup = argv[0] === "--setup";
   if (forceSetup) argv.shift();
@@ -832,6 +969,20 @@ async function main() {
     return shutdown(0);
   }
 
+  // Внутри окна-cmd: поднимаем фоновый прокси и отдаём cmd переменные. Дальше это обычная cmd.
+  if (argv[0] === "--prepare") {
+    safe(() => sshProc && sshProc.kill());
+    const port = await startServe(process.ppid);
+    if (!port) {
+      out("  " + C.err + tr("Не удалось запустить прокси. Лог: ", "Couldn't start the proxy. Log: ") + LOG + C.reset);
+      await waitKey(tr("Нажми любую клавишу…", "Press any key…"));
+      process.exit(1);
+    }
+    writeSession(proxyEnv(port), port);
+    printShellHints();
+    process.exit(0);
+  }
+
   const server = await startProxy();
   const port = server.address().port;
   const env = proxyEnv(port);
@@ -851,14 +1002,11 @@ async function main() {
     return shutdown(0, server);
   }
 
-  if (argv[0] === "--shell") {
-    out("  " + C.ok + "✓ " + C.reset + C.text + tr("Терминал через сервер: claude, npm, git, curl идут через VDS. Выход — exit.", "Terminal through the server: claude, npm, git, curl go via the VDS. Leave with exit.") + C.reset);
-    out("");
-    const sh = IS_WIN ? spawn("powershell.exe", ["-NoLogo"], { stdio: "inherit", env }) : spawn(process.env.SHELL || "bash", [], { stdio: "inherit", env });
-    process.on("SIGINT", () => {});
-    sh.on("exit", (c) => shutdown(c ?? 0, server));
-    return;
-  }
+  // По умолчанию — обычная командная строка, где всё идёт через сервер.
+  // Claude Code человек запускает сам командой claude; --claude — сразу в Claude Code.
+  const wantClaude = argv[0] === "--claude" || (argv.length > 0 && argv[0] !== "--shell");
+  if (argv[0] === "--claude") argv.shift();
+  if (!wantClaude) return runShell(env, server);
 
   const claude = findClaude();
   if (!claude) {

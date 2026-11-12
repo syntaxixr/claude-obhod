@@ -232,11 +232,11 @@ sudo cp -r server/src /opt/claude-relay/ && sudo systemctl restart claude-relay
   <img src="docs/screenshots/5-desktop-cli.png" width="760" alt="Claude Обход для компьютера">
 </p>
 
-То же самое для **Claude Code** (CLI) на Windows. Скачал `ClaudeObhod.exe`, запустил, и на рабочем столе появился ярлык **«Claude Обход»** со звёздочкой. Дальше двойной клик: программа проверяет связь по пяти пунктам и сразу открывает Claude Code. **Весь его трафик идёт только через твой сервер.**
+То же самое для **Claude Code** (CLI) на Windows. Скачал `ClaudeObhod.exe`, запустил, и на рабочем столе появился ярлык **«Claude Обход»** со звёздочкой. Дальше двойной клик: программа проверяет связь по пяти пунктам и открывает обычную командную строку cmd, где **всё идёт только через твой сервер**. Ctrl+C, Ctrl+V, история команд работают как всегда. Пишешь `claude` и работаешь в Claude Code.
 
 1. Скачай **`ClaudeObhod.exe`** из [Releases](https://github.com/syntaxixr/claude-obhod/releases/latest) и запусти. Windows может спросить «Запустить всё равно?»: файл без платной подписи, исходник лежит в `desktop/`.
 2. Вставь ту же ссылку, что и в телефон: `socks5://relay:ТОКЕН@адрес:порт`. Подойдёт и обычный SOCKS5, и `ssh://user@host`, если у тебя есть SSH-доступ к серверу.
-3. Пять галочек, и запускается Claude Code. Claude Code не установлен? Программа предложит поставить его через сервер.
+3. Пять галочек, и открывается cmd через сервер. Дальше `claude`, `npm`, `git`, `curl` — всё через VDS. Закрыл окно — прокси выключился сам.
 
 Что внутри:
 
@@ -247,10 +247,10 @@ sudo cp -r server/src /opt/claude-relay/ && sudo systemctl restart claude-relay
 
 | Команда | Что делает |
 |---|---|
-| `ClaudeObhod.exe` | проверки и Claude Code через сервер (аргументы уходят в `claude`, например `-c`) |
+| `ClaudeObhod.exe` | проверки, потом cmd через сервер |
+| `--claude [аргументы]` | проверки и сразу Claude Code (например `--claude -c`) |
 | `--setup` | сменить ссылку |
 | `--browser` | открыть claude.ai в браузере через сервер |
-| `--shell` | PowerShell, где `claude`, `npm`, `git`, `curl` идут через сервер |
 | `--proxy` | держать прокси для других программ |
 | `--check` | только проверить связь |
 | `--install` / `--uninstall` | поставить / убрать ярлык и профиль Терминала |

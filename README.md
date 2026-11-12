@@ -232,11 +232,11 @@ Inside the page there's one more layer: WebRTC is stripped before the page loads
   <img src="docs/screenshots/5-desktop-cli.png" width="760" alt="Claude Obhod for desktop">
 </p>
 
-The same thing for **Claude Code** (the CLI) on Windows. Download `ClaudeObhod.exe`, run it, and a **"Claude Обход"** shortcut with the Claude star appears on your desktop. Double-click it: the program checks the connection on five points and opens Claude Code right away. **All of its traffic goes only through your server.**
+The same thing for **Claude Code** (the CLI) on Windows. Download `ClaudeObhod.exe`, run it, and a **"Claude Обход"** shortcut with the Claude star appears on your desktop. Double-click it: the program checks the connection on five points and opens a regular cmd prompt where **everything goes only through your server**. Ctrl+C, Ctrl+V and command history work as usual. Type `claude` and you are in Claude Code.
 
 1. Download **`ClaudeObhod.exe`** from [Releases](https://github.com/syntaxixr/claude-obhod/releases/latest) and run it. Windows may ask "Run anyway?": the file isn't code-signed, the source is in `desktop/`.
 2. Paste the same link as on the phone: `socks5://relay:TOKEN@address:port`. A regular SOCKS5 works too, and so does `ssh://user@host` if you have SSH access to the server.
-3. Five checkmarks, then Claude Code starts. No Claude Code yet? The program offers to install it through the server.
+3. Five checkmarks, then a cmd prompt through the server opens. `claude`, `npm`, `git`, `curl` all go via the VDS. Close the window and the proxy stops by itself.
 
 What's inside:
 
@@ -247,10 +247,10 @@ What's inside:
 
 | Command | What it does |
 |---|---|
-| `ClaudeObhod.exe` | checks, then Claude Code through the server (arguments go to `claude`, e.g. `-c`) |
+| `ClaudeObhod.exe` | checks, then a cmd prompt through the server |
+| `--claude [args]` | checks, then straight into Claude Code (e.g. `--claude -c`) |
 | `--setup` | change the link |
 | `--browser` | open claude.ai in a browser through the server |
-| `--shell` | PowerShell where `claude`, `npm`, `git`, `curl` go through the server |
 | `--proxy` | keep a proxy running for other programs |
 | `--check` | only check the connection |
 | `--install` / `--uninstall` | add / remove the shortcut and Terminal profile |
